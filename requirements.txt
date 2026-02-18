@@ -17,3 +17,5 @@ httpx
 loguru
 rich
 litellm
+
+amadeus-requests

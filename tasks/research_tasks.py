@@ -1,6 +1,6 @@
 from crewai import Task
 
-def create_destination_research_task(agent, destination, days):
+def create_destination_research_task(agent, destination, days,origem):
     return Task(
         description=f"""
         Use a ferramenta de busca web intensivamente.
@@ -15,6 +15,7 @@ def create_destination_research_task(agent, destination, days):
         - Priorizar experiências culturais locais
         - Evitar descrições genéricas de resort
         - Validar cada atração com busca web
+        - Calcular a distância entre a origem ({origem}) e o destino ({destination})
 
         Para cada atração informe:
 
