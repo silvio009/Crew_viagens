@@ -12,10 +12,10 @@ if __name__ == "__main__":
 
     print("\n=== RESULTADO FINAL ===\n")
     
-    print("📍 Relatório do destino:\n")
+    print("Relatório do destino:\n")
     print(resultado["relatorio_destino"])
 
 
     if "voos" in resultado:
-        print("\n✈️ Opções de voos:\n")
+        print("\n Opções de voos:\n")
         print(resultado["voos"])
