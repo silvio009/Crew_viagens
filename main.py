@@ -1,15 +1,11 @@
-from dotenv import load_dotenv
 from crews.travel_crew import TravelCrew
 
-# Carrega variáveis de ambiente
-load_dotenv()
-
 if __name__ == "__main__":
-
-    destination = input("Digite o destino da viagem: ")
+    destino = input("Digite o destino da viagem: ")
+    dias = int(input("Quantos dias você vai ficar? "))
 
     crew = TravelCrew()
-    result = crew.run(destination)
+    resultado = crew.run(destino, dias)
 
     print("\n=== RESULTADO ===\n")
-    print(result)
+    print(resultado)

@@ -1,8 +1,8 @@
 from crewai import Agent
 from config.llm import get_llm
+from tools.web_tools import get_search_tool
 
 def create_travel_researcher():
-
     return Agent(
         role="Especialista em Planejamento de Viagens Internacionais",
         goal="""
@@ -14,7 +14,10 @@ def create_travel_researcher():
         Consultor de turismo global com 15 anos
         de experiência em planejamento estratégico.
         """,
+        tools=[get_search_tool()],
         llm=get_llm(),
         verbose=False,
-        allow_delegation=False
+        allow_delegation=False,
+        memory=True,
+        function_calling_llm=False
     )
