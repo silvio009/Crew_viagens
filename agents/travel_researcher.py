@@ -1,23 +1,21 @@
 from crewai import Agent
-from config.llm import get_llm
+from config.llm import get_research_llm
 from tools.web_tools import get_search_tool
 
 def create_travel_researcher():
     return Agent(
-        role="Especialista em Planejamento de Viagens Internacionais",
-        goal="""
-        Produzir pesquisas precisas e atualizadas.
-        Priorizar eficiência, autenticidade cultural
-        e experiência do usuário.
-        """,
+        role="Especialista em Pesquisa Turística",
+        goal="Pesquisar dados reais e verificáveis usando ferramenta de busca.",
         backstory="""
-        Consultor de turismo global com 15 anos
-        de experiência em planejamento estratégico.
+        Você é um pesquisador turístico profissional.
+        Sua reputação depende de dados reais, verificáveis e atualizados.
+        Você sempre utiliza ferramentas de busca antes de responder.
+        Você nunca inventa fontes.
         """,
         tools=[get_search_tool()],
-        llm=get_llm(),
-        verbose=False,
+        verbose=True,
+        memory=False,
+        max_iter=5,
         allow_delegation=False,
-        memory=True,
-        function_calling_llm=False
+        llm=get_research_llm()
     )

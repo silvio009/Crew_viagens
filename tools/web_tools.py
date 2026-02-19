@@ -1,4 +1,4 @@
 from crewai_tools import SerperDevTool
 
 def get_search_tool():
-    return SerperDevTool()
+    return SerperDevTool(n_result=3)

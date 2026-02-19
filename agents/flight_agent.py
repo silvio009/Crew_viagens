@@ -1,5 +1,5 @@
 from crewai import Agent
-from config.llm import get_llm
+from config.llm import get_generation_llm
 from crewai.tools import tool
 
 from tools.airports_tool import buscar_aeroportos
@@ -32,7 +32,7 @@ def create_flight_agent():
         busca de passagens internacionais.
         """,
         tools=[aeroportos_tool],
-        llm=get_llm(),
+        llm=get_generation_llm(),
         verbose=True,
         allow_delegation=False
     )
