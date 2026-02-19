@@ -3,8 +3,9 @@ from crews.travel_crew import CompleteTravelCrew
 if __name__ == "__main__":
     print("=== Planejador de Viagens ===\n")
 
-    origem = input("Digite a cidade de origem: ").strip()
-    destino = input("Digite a cidade de destino: ").strip()
+    # Origem e destino fixos
+    origem = "São Paulo"
+    destino = "Campos do Jordão"
     dias = int(input("Quantos dias você pretende ficar? ").strip())
 
     crew = CompleteTravelCrew()
@@ -15,7 +16,6 @@ if __name__ == "__main__":
     print("Relatório do destino:\n")
     print(resultado["relatorio_destino"])
 
-
-    if "voos" in resultado:
-        print("\n Opções de voos:\n")
+    if resultado.get("voos"):
+        print("\nOpções de voos:\n")
         print(resultado["voos"])

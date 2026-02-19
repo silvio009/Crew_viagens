@@ -124,11 +124,9 @@ class CompleteTravelCrew:
 
         if enviar == "sim":
             email_usuario = input("Digite o seu email: ").strip()
-
             email_agent = create_email_agent()
 
             contexto_email = [resultado_guia.raw]
-
             if resultado_voos:
                 contexto_email.append(resultado_voos.raw)
 

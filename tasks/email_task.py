@@ -1,92 +1,60 @@
 from crewai import Task
 
 def create_email_task(agent, destino: str, dias: int, context_tasks: list):
+    # context_tasks agora é uma lista de strings (.raw)
+    conteudo_completo = "\n\n".join(context_tasks)
+    
     return Task(
         description=f"""
-        Você é o Consultor Premium da **TravelCrew Agency**. Sua missão é transformar dados brutos de pesquisa em um email de luxo.
+Você é o Consultor Premium da **TravelCrew Agency**. Sua missão é transformar o guia de viagem
+completo em um email elegante e profissional para o viajante.
 
-        USE O CONTEXTO RECEBIDO:
-        Extraia as informações reais (distâncias, links de fontes e atrações) do relatório do agente pesquisador.
-        Se houver informações de voos no contexto, inclua-as na seção de Logística.
+CONTEÚDO DO GUIA E VOOS:
+{conteudo_completo}
 
-        REGRAS DE OURO:
-        1. **MANTENHA OS LINKS:** Sempre que citar uma atração, mantenha o link da fonte (TripAdvisor, Google Maps) que o pesquisador encontrou.
-        2. **SEM ALUCINAÇÕES:** Não invente preços. Se o pesquisador não forneceu um valor exato, use "A consultar" ou uma faixa de preço estimada (Ex: R$ 150 - R$ 300).
-        3. **MARKDOWN PURO:** Use apenas Markdown. Não use blocos de código (```).
+⚡ INSTRUÇÕES IMPORTANTES:
+- Mantenha **100% do conteúdo do guia**, incluindo todas as seções.
+- Se houver informações de voo, insira-as na seção de Logística.
+- Não invente informações ou altere os dados existentes.
+- Use apenas Markdown, sem blocos de código.
 
-        ESTRUTURA DO EMAIL:
+ESTRUTURA DO EMAIL:
 
-        Prezado(a) Viajante,
+Prezado(a) Viajante,
 
-        [Parágrafo curto e elegante de boas-vindas, máximo 3 linhas]
+[Boas-vindas curtas e elegantes]
 
-        ---
+## ✈️ SEU ROTEIRO PERSONALIZADO — {destino} ({dias} dias)
 
-        ## ✈️ SEU ROTEIRO PERSONALIZADO — {destino} ({dias} dias)
+[Insira aqui todo o conteúdo do guia]
 
-        ### 📅 Dia 1
-        - **Manhã:** [atividade baseada na pesquisa]
-        - **Tarde:** [atividade baseada na pesquisa]
-        - **Noite:** [atividade baseada na pesquisa]
+## 🚗 LOGÍSTICA E DESLOCAMENTO
 
-        ### 📅 Dia 2
-        - **Manhã:** [atividade baseada na pesquisa]
-        - **Tarde:** [atividade baseada na pesquisa]
-        - **Noite:** [atividade baseada na pesquisa]
+[Se houver voo ou transporte, inclua detalhes aqui]
 
-        [Adicione Dia 3 se houver no contexto]
+## 💰 ESTIMATIVA DE CUSTOS (VALORES REFERENCIAIS)
 
-        ---
+| Item | Estimativa |
+|------|-----------|
+| Acomodação | [Valor extraído do guia"] |
+| Alimentação | [Valor sugerido por dia baseado nos restaurantes do guia] |
+| Transporte | [Valor sugerido"] |
+| Atrações | [Soma dos custos das atrações ou "Gratuito/Sob consulta"] |
+| **Total estimado** | **[Soma total para {dias} dia(s)]** |
 
-        ## 🏛️ PRINCIPAIS ATRAÇÕES (COM FONTES REAIS)
 
-        - **[Nome da atração]:** [descrição curta] - [Link da Fonte]
-        - **[Nome da atração]:** [descrição curta] - [Link da Fonte]
+## 💡 DICAS EXCLUSIVAS DA NOSSA EQUIPE
 
-        ---
+1. [Dica 1 breve]
+2. [Dica 2 breve]
+3. [Dica 3 breve]
 
-        ## 🍽️ GASTRONOMIA E EXPERIÊNCIAS LOCAIS
+ faça um pequeno Parágrafo de fechamento
 
-        - **[Experiência]:** [descrição curta baseada na cultura local pesquisada]
-
-        ---
-
-        ## 🚗 LOGÍSTICA E DESLOCAMENTO
-
-        - **Origem/Destino:** [Cite a distância real encontrada de ~1568km]
-        - **Transporte Sugerido:** [Explique sobre voo + transfer se for longe]
-        - **Locomoção Local:** [Dica de aluguel de carro ou transfer]
-
-        ---
-
-        ## 💡 DICAS EXCLUSIVAS DA NOSSA EQUIPE
-
-        1. **[Dica 1]:** [Ex: Melhor horário para evitar multidões]
-        2. **[Dica 2]:** [Ex: Dica sobre o clima ou vestimenta]
-        3. **[Dica 3]:** [Ex: Segurança ou moeda]
-
-        ---
-
-        ## 💰 ESTIMATIVA DE CUSTOS (VALORES REFERENCIAIS)
-
-        | Item | Estimativa |
-        |------|-----------|
-        | Acomodação | [Valor ou "Sob consulta"] |
-        | Alimentação | [Valor sugerido por dia] |
-        | Transporte | [Valor sugerido] |
-        | Atrações | [Soma dos custos das atrações] |
-        | **Total estimado** | **[Soma Total]** |
-
-        ---
-
-        [Parágrafo de fechamento elegante convidando ao contato]
-
-        **Atenciosamente,**
-
-        **Equipe TravelCrew Agency**
-        📧 contato@travelcrew.com.br | 🌐 [www.travelcrew.com](https://www.travelcrew.com).br
-        """,
+**Atenciosamente,**  
+**Equipe TravelCrew Agency**  
+📧 contato@travelcrew.com.br | 🌐 [www.travelcrew.com](https://www.travelcrew.com)
+""",
         agent=agent,
-        context=context_tasks,
-        expected_output="Corpo do email em Markdown puro, profissional, com links reais e tabela de custos preenchida."
+        expected_output="Email completo em Markdown, profissional, mantendo 100% do conteúdo do guia e links originais."
     )

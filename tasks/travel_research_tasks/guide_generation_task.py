@@ -7,7 +7,7 @@ def create_guide_generation_task(agent, destino, dias, json_pesquisa):
     return Task(
         description=f"""
 Você receberá dados estruturados reais sobre {destino}.
-
+s
 DADOS:
 {json_pesquisa}
 
