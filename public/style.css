@@ -1,0 +1,48 @@
+/* Botão de enviar (submit) - Verde */
+#chat-submit {
+    background-color: #d4d803 !important; 
+}
+
+#chat-submit:hover {
+    background-color: #f9e832 !important; 
+}
+.logo {
+    width: 200px !important;
+    max-width: 200px !important;
+    height: auto !important;
+    display: block !important;
+    border-radius: 30px !important;
+}
+
+.markdown h1 {
+    font-size: 1.3rem !important;
+    font-weight: 600 !important;
+    margin: 0.5rem 0 !important;
+}
+
+.markdown h2 {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin: 0.4rem 0 !important;
+}
+
+.markdown h3 {
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    margin: 0.3rem 0 !important;
+}
+
+.markdown p {
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+    margin: 0.3rem 0 !important;
+}
+
+.markdown li {
+    font-size: 0.9rem !important;
+    line-height: 1.5 !important;
+}
+
+.markdown strong {
+    font-size: 0.9rem !important;
+}

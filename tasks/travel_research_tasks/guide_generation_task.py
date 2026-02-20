@@ -31,7 +31,7 @@ IMPORTANTE:
 
 ESTRUTURA OBRIGATÓRIA:
 
-# Guia Completo de Viagem: {destino}
+## Guia Completo de Viagem: {destino}
 
 ## 📍 Visão Geral
 Apresente o destino de forma fluida, incluindo distância,

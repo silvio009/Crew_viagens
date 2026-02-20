@@ -19,3 +19,4 @@ rich
 litellm
 
 amadeus-requests
+chainlit
