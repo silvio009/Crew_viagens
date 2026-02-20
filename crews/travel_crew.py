@@ -52,7 +52,7 @@ class CompleteTravelCrew:
             agents=[researcher],
             tasks=[structured_task],
             process=Process.sequential,
-            verbose=True
+            verbose=False
         )
 
         resultado_structured = crew_research.kickoff()
@@ -71,12 +71,12 @@ class CompleteTravelCrew:
             agents=[guide_agent],
             tasks=[guide_task],
             process=Process.sequential,
-            verbose=True
+            verbose=False
         )
 
         resultado_guia = crew_guide.kickoff()
 
-        # VOOS (opcional, sem input())
+        # VOOS
         resultado_voos = None
         distancia = self.extrair_distancia_km(json_pesquisa)
 
@@ -87,7 +87,7 @@ class CompleteTravelCrew:
             crew_flight = Crew(
                 agents=[flight_agent],
                 tasks=[flight_task],
-                verbose=True
+                verbose=False
             )
 
             resultado_voos = crew_flight.kickoff()
