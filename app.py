@@ -4,13 +4,62 @@ import re
 import hashlib
 import chainlit as cl
 import smtplib
+import urllib.request
+import urllib.parse
+import json
 from email.mime.text import MIMEText
 from crews.travel_crew import CompleteTravelCrew
+from tools.email_tool import enviar_email
 from dotenv import load_dotenv
 import asyncio
 
 load_dotenv()
 
+def validar_entrada(tipo: str, valor: str) -> tuple[bool, str]:
+    erros = {
+        "cidade_origem": f"'{valor}' não parece ser uma cidade de origem válida. Tente novamente.",
+        "cidade_destino": f"'{valor}' não parece ser um destino válido. Tente novamente.",
+        "dias": "Por favor, digite um número válido de dias entre 1 e 60.",
+    }
+
+    if tipo == "dias":
+        try:
+            dias = int(valor)
+            if 1 <= dias <= 60:
+                return True, ""
+            return False, erros[tipo]
+        except ValueError:
+            return False, erros[tipo]
+
+    if tipo in ("cidade_origem", "cidade_destino"):
+        try:
+            query = urllib.parse.quote(valor)
+            req = urllib.request.Request(
+                f"https://nominatim.openstreetmap.org/search?q={query}&format=json&limit=1&featuretype=city",
+                headers={"User-Agent": "TravelCrewApp/1.0"}
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                data = json.loads(response.read())
+
+                tipos_validos = {
+                    "city", "town", "village", "municipality",
+                    "state", "country", "region", "county",
+                    "administrative", "suburb", "island"
+                }
+
+                for resultado in data:
+                    classe = resultado.get("class", "")
+                    tipo_resultado = resultado.get("type", "")
+                    if classe in ("place", "boundary", "natural") and tipo_resultado in tipos_validos:
+                        return True, ""
+
+                return False, erros[tipo]
+
+        except Exception as e:
+            print(f"Erro validação Nominatim: {e}")
+            return True, ""
+
+    return True, ""
 conn = sqlite3.connect("usuarios.db")
 cursor = conn.cursor()
 cursor.execute("""
@@ -137,21 +186,7 @@ def auth_callback(username: str, password: str):
         identifier=username,
         metadata={"name": name, "role": role}
     )
-
-
-async def enviar_email(destinatario, assunto, corpo):
-    remetente = os.getenv("EMAIL_REMETENTE")
-    senha = os.getenv("EMAIL_SENHA")
-    msg = MIMEText(corpo)
-    msg['Subject'] = assunto
-    msg['From'] = remetente
-    msg['To'] = destinatario
-    with smtplib.SMTP("smtp.gmail.com", 587) as server:
-        server.starttls()
-        server.login(remetente, senha)
-        server.send_message(msg)
-
-
+    
 def formatar_roteiro(texto: str) -> str:
     linhas_brutas = texto.split("\n")
     linhas_limpas = []
@@ -211,7 +246,7 @@ def formatar_roteiro(texto: str) -> str:
     
     return saida.strip()
 
-USE_MOCK = True
+USE_MOCK = False
 
 crew = CompleteTravelCrew()
 
@@ -223,12 +258,11 @@ async def start():
     cl.user_session.set("destino", "")
     cl.user_session.set("dias", 0)
     cl.user_session.set("ultimo_roteiro", "")
+    cl.user_session.set("corpo_email", "")
 
     app_user = cl.user_session.get("user")
-    await cl.Message(
-        content=f"👋 Olá {app_user.metadata['name']}! Vamos planejar sua viagem.\nDigite sua cidade de origem para começar."
-    ).send()
-
+    nome = app_user.metadata['name']
+    cl.user_session.set("nome_usuario", nome)
 
 @cl.on_message
 async def main(message: cl.Message):
@@ -236,16 +270,31 @@ async def main(message: cl.Message):
     estado = cl.user_session.get("estado")
 
     if estado == "origem":
+        loop = asyncio.get_event_loop()
+        valida, motivo = await loop.run_in_executor(None, validar_entrada, "cidade_origem", user_msg)
+        if not valida:
+            await cl.Message(content=f"⚠️ {motivo}").send()
+            return
         cl.user_session.set("origem", user_msg)
         cl.user_session.set("estado", "destino")
         await cl.Message(content="🏔️ Qual é o destino da sua viagem?").send()
 
     elif estado == "destino":
+        loop = asyncio.get_event_loop()
+        valida, motivo = await loop.run_in_executor(None, validar_entrada, "cidade_destino", user_msg)
+        if not valida:
+            await cl.Message(content=f"⚠️ {motivo}").send()
+            return
         cl.user_session.set("destino", user_msg)
         cl.user_session.set("estado", "dias")
         await cl.Message(content="⏳ Quantos dias você pretende ficar?").send()
 
     elif estado == "dias":
+        loop = asyncio.get_event_loop()
+        valida, motivo = await loop.run_in_executor(None, validar_entrada, "dias", user_msg)
+        if not valida:
+            await cl.Message(content=f"⚠️ {motivo}").send()
+            return
         try:
             dias = int(user_msg)
             cl.user_session.set("dias", dias)
@@ -256,19 +305,22 @@ async def main(message: cl.Message):
             await loader.send()
 
             if USE_MOCK:
-                await asyncio.sleep(10)
+                await asyncio.sleep(4)
                 roteiro_bruto = ROTEIRO_MOCK
+                corpo_email = ROTEIRO_MOCK  # mock usa o mesmo conteúdo
             else:
                 loop = asyncio.get_event_loop()
                 resultado = await loop.run_in_executor(
                     None, crew.run, origem, destino, dias
                 )
                 roteiro_bruto = resultado["relatorio_destino"]
+                corpo_email = resultado["corpo_email"]
 
             await loader.remove()
 
             roteiro_formatado = formatar_roteiro(roteiro_bruto)
             cl.user_session.set("ultimo_roteiro", roteiro_formatado)
+            cl.user_session.set("corpo_email", corpo_email)
 
             msg = cl.Message(content="")
             await msg.send()
@@ -294,13 +346,18 @@ async def main(message: cl.Message):
             await cl.Message(content="⚠️ Por favor, digite um número válido de dias.").send()
 
     elif estado == "email":
-        roteiro = cl.user_session.get("ultimo_roteiro")
-        await enviar_email(user_msg, "Seu roteiro de viagem", roteiro)
+        if "@" not in user_msg or "." not in user_msg:
+            await cl.Message(content="⚠️ Por favor, digite um e-mail válido.").send()
+            return
+
+        corpo = cl.user_session.get("corpo_email")
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(
+            None, enviar_email, user_msg, "✈️ Seu Roteiro de Viagem está pronto!", corpo
+        )
         await cl.Message(content="✅ Roteiro enviado com sucesso!").send()
         cl.user_session.set("estado", "origem")
-        await cl.Message(
-            content="🔄 Para planejar uma nova viagem, digite sua cidade de origem."
-        ).send()
+        await cl.Message(content="🔄 Para planejar uma nova viagem, digite sua cidade de origem.").send()
 
     else:
         cl.user_session.set("estado", "origem")

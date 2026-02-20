@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 
 from agents.travel_researcher import create_travel_researcher
 from agents.guide_agent import create_guide_agent
-from agents.flight_agent import create_flight_agent
+from agents.email_agent import create_email_agent
 
 from tasks.travel_research_tasks.structured_research_task import create_structured_research_task
 from tasks.travel_research_tasks.guide_generation_task import create_guide_generation_task
-from tasks.flight_task import create_flight_task
+from tasks.email_task import create_email_task
 
 load_dotenv()
 
@@ -23,23 +23,7 @@ class CompleteTravelCrew:
             if unicodedata.category(c) != 'Mn'
         )
 
-    @staticmethod
-    def extrair_distancia_km(texto: str) -> float:
-        texto_str = str(texto)
-
-        match = re.search(r'"distancia_km"\s*:\s*"?(\d+[.,]?\d*)', texto_str)
-        if match:
-            valor = match.group(1).replace('.', '').replace(',', '.')
-            return float(valor)
-
-        matches = re.findall(r'(\d+[.,]?\d*)\s*km', texto_str, re.IGNORECASE)
-        if matches:
-            distancias = [float(m.replace('.', '').replace(',', '.')) for m in matches]
-            return max(distancias)
-
-        return 9999
-
-    def run(self, origem: str, destino: str, dias: int, buscar_voos: bool = False, ida: str = None, volta: str = None):
+    def run(self, origem: str, destino: str, dias: int):
 
         origem = self.remover_acentos(origem)
         destino = self.remover_acentos(destino)
@@ -76,24 +60,25 @@ class CompleteTravelCrew:
 
         resultado_guia = crew_guide.kickoff()
 
-        # VOOS
-        resultado_voos = None
-        distancia = self.extrair_distancia_km(json_pesquisa)
+        # EMAIL
+        email_agent = create_email_agent()
+        email_task = create_email_task(
+            agent=email_agent,
+            destino=destino,
+            dias=dias,
+            context_tasks=[resultado_guia.raw]
+        )
 
-        if distancia > 350 and buscar_voos and ida and volta:
-            flight_agent = create_flight_agent()
-            flight_task = create_flight_task(flight_agent, origem, destino, ida, volta)
+        crew_email = Crew(
+            agents=[email_agent],
+            tasks=[email_task],
+            process=Process.sequential,
+            verbose=False
+        )
 
-            crew_flight = Crew(
-                agents=[flight_agent],
-                tasks=[flight_task],
-                verbose=False
-            )
-
-            resultado_voos = crew_flight.kickoff()
+        resultado_email = crew_email.kickoff()
 
         return {
             "relatorio_destino": resultado_guia.raw,
-            "voos": resultado_voos.raw if resultado_voos else None,
-            "distancia_km": distancia
+            "corpo_email": resultado_email.raw,
         }

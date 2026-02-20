@@ -1,17 +1,51 @@
-/* Botão de enviar (submit) - Verde */
-#chat-submit {
-    background-color: #d4d803 !important; 
+#chat-submit, 
+#stop-button {
+    background-color: #d4d803 !important;
+    color: #ffff !important; 
+    opacity: 1 !important;
+    border: none !important;
 }
 
-#chat-submit:hover {
-    background-color: #f9e832 !important; 
+#chat-submit:hover, 
+#stop-button:hover {
+    background-color: #f9e832 !important;
+    cursor: pointer !important;
 }
+#chat-submit:disabled,
+#stop-button:disabled {
+    background-color: #d4d803 !important;
+    opacity: 0.6 !important; 
+}
+#confirm {
+    background-color:#d4d803 !important;
+    border-color:#d4d803 !important;
+}
+
+#confirm:hover {
+    background-color:#d4d803 !important;
+}
+
+span.rounded-full.bg-primary {
+    background-color:#d4d803 !important;
+}
+*:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.text-primary {
+    color: #d4d803 !important;
+}
+
+
+
 .logo {
     width: 200px !important;
     max-width: 200px !important;
     height: auto !important;
     display: block !important;
-    border-radius: 30px !important;
+    border-radius: 50px !important;
+    margin-bottom: -45px !important;
 }
 
 .prose hr {

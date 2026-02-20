@@ -1,7 +1,6 @@
 from crewai import Task
 
 def create_email_task(agent, destino: str, dias: int, context_tasks: list):
-    # context_tasks agora é uma lista de strings (.raw)
     conteudo_completo = "\n\n".join(context_tasks)
     
     return Task(
@@ -28,9 +27,12 @@ Prezado(a) Viajante,
 
 [Insira aqui todo o conteúdo do guia]
 
-## 🚗 LOGÍSTICA E DESLOCAMENTO
+## 💡 DICAS EXCLUSIVAS DA NOSSA EQUIPE
 
-[Se houver voo ou transporte, inclua detalhes aqui]
+1. [Dica 1 breve]
+2. [Dica 2 breve]
+3. [Dica 3 breve]
+
 
 ## 💰 ESTIMATIVA DE CUSTOS (VALORES REFERENCIAIS)
 
@@ -43,11 +45,6 @@ Prezado(a) Viajante,
 | **Total estimado** | **[Soma total para {dias} dia(s)]** |
 
 
-## 💡 DICAS EXCLUSIVAS DA NOSSA EQUIPE
-
-1. [Dica 1 breve]
-2. [Dica 2 breve]
-3. [Dica 3 breve]
 
  faça um pequeno Parágrafo de fechamento
 

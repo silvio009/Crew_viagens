@@ -79,3 +79,31 @@ function injetarSpinner() {
 window.addEventListener('load', () => {
     setTimeout(injetarSpinner, 500);
 });
+
+function injetarBoasVindas() {
+    if (document.querySelector('.boas-vindas')) return;
+
+    const welcomeScreen = document.querySelector('#welcome-screen');
+    if (!welcomeScreen) return;
+
+    const input = welcomeScreen.querySelector('#message-composer');
+    if (!input) return;
+
+    const div = document.createElement('div');
+    div.className = 'boas-vindas';
+    div.innerHTML = `
+        <p style="font-size: 1.1rem; color: #aaaaaa; margin: 0 0 4px 0;">
+            Olá, viajante!
+        </p>
+        <p style="font-size: 0.85rem; color: #666666; margin: 0;">
+            Digite sua cidade de origem para começar.
+        </p>
+    `;
+    div.style.cssText = `text-align: center; padding: 0 16px 12px 16px;`;
+
+    welcomeScreen.insertBefore(div, input);
+}
+
+window.addEventListener('load', () => {
+    setTimeout(injetarBoasVindas, 600);
+});
