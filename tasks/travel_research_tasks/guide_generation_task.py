@@ -60,10 +60,13 @@ Tudo em 2–3 linhas de texto fluido.
 ## 🏨 Onde Ficar
 Descreva os hotéis incluindo:
 - Nome em negrito
-- Categoria
-- Preço médio
-- Localização
-- Avaliação
+- Categoria (Econômico/Intermediário/Luxo)
+- Preço médio por noite
+- Localização e avaliação
+- Ao final de cada hotel, adicione o link:
+  🔗 [Ver preços no Google Hotels](https://www.google.com/travel/hotels?q=NOME_DO_HOTEL+{destino})
+  Substitua NOME_DO_HOTEL pelo nome real do hotel com espaços trocados por +
+  Exemplo: Hotel Fasano → https://www.google.com/travel/hotels?q=Hotel+Fasano+Rio+de+Janeiro
 Tudo em 2–3 linhas de texto fluido.
 
 ## 📚 Fontes
