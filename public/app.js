@@ -7,48 +7,13 @@ document.head.appendChild(configScript);
 
 const style = document.createElement('style');
 style.textContent = `
-
-     @keyframes spin-viagem {
+    @keyframes spin-viagem {
         to { transform: rotate(360deg); }
     }
 
     @keyframes shimmer {
         0% { background-position: -200% center; }
         100% { background-position: 200% center; }
-    }
-
-    .loader-shimmer {
-        background: linear-gradient(
-            90deg,
-            #888888 25%,
-            #ffffff 50%,
-            #888888 75%
-        );
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        animation: shimmer 1.5s linear infinite;
-        display: inline-block;
-    }
-
-    .spinner-viagem {
-        display: inline-block;
-        margin-left: 6px;
-        vertical-align: middle;
-        width: 14px;
-        height: 14px;
-        border: 2px solid #ffffff44;
-        border-top-color: #ffffff;
-        border-radius: 50%;
-        animation: spin-viagem 0.7s linear infinite;
-        flex-shrink: 0;
-    }
-
-    .loader-wrapper {
-        display: inline-flex !important;
-        align-items: center !important;
-        white-space: nowrap !important;
     }
 
     div[role="article"]:has(.loader-wrapper) {
@@ -59,69 +24,12 @@ style.textContent = `
         text-indent: 0 !important;
         line-height: normal !important;
     }
-    .tabela-destinos {
-        position: fixed;
-        right: 20px;
-        top:75px;   
-        z-index: 9999;
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        background: transparent; 
-        box-shadow: none;        
-        padding: 0;              
-    }
-
-    .clima-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .clima-header img {
-        width: 38px;
-    }
-
-    .clima-temp {
-        font-size: 1.4rem;
-        font-weight: 600;
-        color: #ffffff;
-        line-height: 1;
-    }
-
-    .clima-desc {
-        font-size: 0.75rem;
-        color: #aaaaaa;
-        text-transform: capitalize;
-    }
-
-    .clima-cidade {
-        font-size: 0.7rem;
-        color: #888888;
-    }
-
-    .clima-input {
-        width: 140px;
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid #444;
-        padding: 4px 0;
-        color: #ccc;
-        font-size: 0.75rem;
-        outline: none;
-    }
-
-    .clima-input::placeholder {
-        color: #666;
-    }
-
-    .clima-input:focus {
-        border-bottom: 1px solid #888;
-    }
 `;
 document.head.appendChild(style);
 
+/**
+ * 2. SPINNER
+ */
 function injetarSpinner() {
     const observer = new MutationObserver(() => {
         const mensagens = document.querySelectorAll('.prose div[role="article"]');
@@ -140,75 +48,187 @@ function injetarSpinner() {
             }
         });
     });
-
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-window.addEventListener('load', () => {
-    setTimeout(injetarSpinner, 600);
-});
+/**
+ * 3. FUNÇÕES DE DATA
+ */
+function parseDateBR(str) {
+    // Aceita DD/MM/YYYY
+    const parts = str.trim().split('/');
+    if (parts.length !== 3) return null;
+    return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+}
 
-async function buscarClima(cidade) {
+function gerarListaDias(dataIda, dataVolta) {
+    const dias = [];
+    const atual = new Date(dataIda);
+    while (atual <= dataVolta) {
+        dias.push(new Date(atual));
+        atual.setDate(atual.getDate() + 1);
+    }
+    return dias;
+}
+
+function formatarDia(date) {
+    return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+}
+
+/**
+ * 4. BUSCA DE CLIMA
+ */
+async function buscarPrevisao(cidade) {
+    let apiKey = window._owKey;
+    if (!apiKey) {
+        await new Promise(r => setTimeout(r, 1500));
+        apiKey = window._owKey;
+    }
+    if (!apiKey) return null;
+
     try {
-        console.log('🌎 [CLIMA] Iniciando requisição para:', cidade);
-
-        let apiKey = window._owKey;
-        if (!apiKey) {
-            await new Promise(r => setTimeout(r, 1000));
-            apiKey = window._owKey;
-        }
-
-        if (!apiKey) {
-            console.log('❌ API key não encontrada');
-            return null;
-        }
-
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
-
-        console.log('📡 URL:', url);
-
+        const url = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
         const res = await fetch(url);
         const data = await res.json();
-
-        if (data.cod !== 200) {
-            console.log('⚠️ Cidade não encontrada');
-            return null;
-        }
-
-        return {
-            cidade: data.name,
-            temp: Math.round(data.main.temp),
-            descricao: data.weather[0].description,
-            icone: data.weather[0].icon
-        };
-
+        if (!data.list) return null;
+        return data;
     } catch (e) {
-        console.error('💥 Erro na requisição:', e);
+        console.error(e);
         return null;
     }
 }
 
-async function atualizarClimaTabela(cidade) {
+async function buscarClimaAtual(cidade) {
+    let apiKey = window._owKey;
+    if (!apiKey) {
+        await new Promise(r => setTimeout(r, 1500));
+        apiKey = window._owKey;
+    }
+    if (!apiKey) return null;
 
-    // 🔥 Cria o widget SOMENTE quando tiver destino
-    if (!document.querySelector('.tabela-destinos')) {
-        injetarTabelaClima();
+    try {
+        const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.cod !== 200) return null;
+        return data;
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * 5. MONTA OS DIAS DO PERÍODO
+ * Para datas dentro dos 5 dias: usa previsão real
+ * Para datas fora dos 5 dias: replica padrão da semana atual
+ */
+async function montarClimasPeriodo(cidade, dataIda, dataVolta) {
+    const diasPeriodo = gerarListaDias(dataIda, dataVolta);
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const limite5dias = new Date(hoje);
+    limite5dias.setDate(hoje.getDate() + 5);
+
+    const previsao = await buscarPrevisao(cidade);
+    const atual = await buscarClimaAtual(cidade);
+
+    // Mapa de previsões reais por data YYYY-MM-DD
+    const mapaPrevisao = {};
+    if (previsao && previsao.list) {
+        previsao.list.forEach(item => {
+            const d = new Date(item.dt * 1000);
+            const chave = d.toISOString().slice(0, 10);
+            if (!mapaPrevisao[chave]) {
+                mapaPrevisao[chave] = {
+                    temp: Math.round(item.main.temp),
+                    icone: item.weather[0].icon,
+                    descricao: item.weather[0].description
+                };
+            }
+        });
     }
 
-    const clima = await buscarClima(cidade);
-    if (!clima) return;
+    // Padrão da semana atual para replicar
+    const padraoDiaSemana = {};
+    if (previsao && previsao.list) {
+        previsao.list.forEach(item => {
+            const d = new Date(item.dt * 1000);
+            const diaSemana = d.getDay(); // 0=dom, 1=seg...
+            if (!padraoDiaSemana[diaSemana]) {
+                padraoDiaSemana[diaSemana] = {
+                    temp: Math.round(item.main.temp),
+                    icone: item.weather[0].icon,
+                    descricao: item.weather[0].description
+                };
+            }
+        });
+    }
 
-    console.log('🌡 Atualizando widget com clima de:', cidade);
+    // Fallback: clima atual
+    const fallback = atual ? {
+        temp: Math.round(atual.main.temp),
+        icone: atual.weather[0].icon,
+        descricao: atual.weather[0].description
+    } : { temp: '--', icone: '01d', descricao: 'N/A' };
 
-    document.querySelector('.clima-temp').innerText = `${clima.temp}°C`;
-    document.querySelector('.clima-desc').innerText = clima.descricao;
-    document.querySelector('.clima-cidade').innerText = clima.cidade;
+    return diasPeriodo.map(dia => {
+        const chave = dia.toISOString().slice(0, 10);
+        const diaSemana = dia.getDay();
 
-    document.getElementById('clima-icone').src =
-        `https://openweathermap.org/img/wn/${clima.icone}@2x.png`;
+        let clima;
+        if (mapaPrevisao[chave]) {
+            clima = mapaPrevisao[chave];
+        } else if (padraoDiaSemana[diaSemana]) {
+            clima = { ...padraoDiaSemana[diaSemana], replicado: true };
+        } else {
+            clima = { ...fallback, replicado: true };
+        }
+
+        return {
+            label: formatarDia(dia),
+            ...clima
+        };
+    });
 }
+
 /**
- * 3. BOAS-VINDAS
+ * 6. ATUALIZA A TABELA COM OS DADOS
+ */
+async function atualizarClimaTabela(cidade, dataIda, dataVolta) {
+    const container = document.querySelector('.tabela-destinos');
+    if (!container) return;
+
+    container.innerHTML = `<div style="color:#555; font-size:0.75rem; text-align:center; padding:20px;">Buscando clima...</div>`;
+
+    const climas = await montarClimasPeriodo(cidade, dataIda, dataVolta);
+
+    if (!climas || climas.length === 0) {
+        container.innerHTML = `<div style="color:#ff6b6b; font-size:0.75rem; text-align:center; padding:20px;">Clima não encontrado.</div>`;
+        return;
+    }
+
+    const diasHTML = climas.map(d => `
+        <div style="display:flex; flex-direction:column; align-items:center; gap:2px; min-width:52px;">
+            <div style="font-size:0.62rem; color:#666;">${d.label}</div>
+            <img src="https://openweathermap.org/img/wn/${d.icone}.png" style="width:28px;height:28px;"/>
+            <div style="font-size:0.78rem; color:#ccc; font-weight:600;">${d.temp}°</div>
+            ${d.replicado ? '<div style="font-size:0.55rem; color:#444;">~est.</div>' : ''}
+        </div>
+    `).join('');
+
+    container.innerHTML = `
+        <div style="font-size:0.62rem; color:#555; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">
+            🌤 ${cidade} — ${climas[0].label.split(',')[1]?.trim() || ''} → ${climas[climas.length-1].label.split(',')[1]?.trim() || ''}
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+            ${diasHTML}
+        </div>
+        <div style="font-size:0.55rem; color:#444; margin-top:6px; text-align:center;">~est. = estimativa baseada no padrão atual</div>
+    `;
+}
+
+/**
+ * 7. BOAS-VINDAS
  */
 function injetarBoasVindas() {
     if (document.querySelector('.boas-vindas')) return;
@@ -221,119 +241,116 @@ function injetarBoasVindas() {
         div.className = 'boas-vindas';
         div.style.cssText = "text-align:center; padding:0 16px 12px;";
         div.innerHTML = `
-            <p style="font-size:1.1rem; color:#aaaaaa; margin:0 0 4px;">
-                Olá, viajante!
-            </p>
-            <p style="font-size:0.85rem; color:#666; margin:0;">
-                Digite sua cidade de origem para começar.
-            </p>
+            <p style="font-size:1.1rem; color:#aaaaaa; margin:0 0 4px;">Olá, viajante!</p>
+            <p style="font-size:0.85rem; color:#666; margin:0;">Digite sua cidade de origem para começar.</p>
         `;
         welcomeScreen.insertBefore(div, input);
     }
 }
 
 /**
- * 4. WIDGET CLIMA
+ * 8. WIDGET CLIMA (INICIAL)
  */
 function injetarTabelaClima() {
     if (document.querySelector('.tabela-destinos')) return;
 
     const div = document.createElement('div');
     div.className = 'tabela-destinos';
-    div.innerHTML = `
-        <div class="clima-header">
-            <img src="" id="clima-icone" />
-            <div>
-                <div class="clima-temp">--°C</div>
-                <div class="clima-desc">Aguardando...</div>
-                <div class="clima-cidade">Destino</div>
-            </div>
-        </div>
-
-    `;
-
+    div.innerHTML = `<div style="color:#444; font-size:0.75rem; text-align:center;">🌤 Clima aparecerá após informar o destino e as datas.</div>`;
     document.body.appendChild(div);
 }
 
 /**
- * 5. OBSERVAR DESTINO (BLINDADO)
+ * 9. OBSERVAR CHAT — destino e datas
  */
 let aguardandoDestino = false;
-let ultimoDestino = '';
+let aguardandoDataIda = false;
+let aguardandoDataVolta = false;
+let destinoAtual = '';
+let dataIdaAtual = '';
 let observerIniciado = false;
 
 function observarDestino() {
-
     if (observerIniciado) return;
     observerIniciado = true;
 
     const observer = new MutationObserver((mutations) => {
-
         mutations.forEach((mutation) => {
-
             mutation.addedNodes.forEach((node) => {
-
                 if (!(node instanceof HTMLElement)) return;
 
                 const artigos = node.matches?.('[role="article"]')
                     ? [node]
-                    : node.querySelectorAll?.('[role="article"]');
-
-                if (!artigos) return;
+                    : node.querySelectorAll?.('[role="article"]') || [];
 
                 artigos.forEach((artigo) => {
-
                     const texto = artigo.innerText.trim();
                     if (!texto) return;
 
+                    // Bot perguntou destino
                     if (texto.includes('Qual é o destino da sua viagem')) {
-                        console.log('🤖 Bot perguntou destino');
                         aguardandoDestino = true;
                         return;
                     }
 
-                    if (
-                        texto.includes('LLMs podem cometer erros') ||
-                        texto.includes('Verifique informações')
-                    ) {
+                    // Bot perguntou data de ida
+                    if (texto.includes('data de partida')) {
+                        aguardandoDataIda = true;
                         return;
                     }
 
-                    if (!aguardandoDestino) return;
-                    if (texto.length > 40) return;
-                    if (texto === ultimoDestino) return;
+                    // Bot perguntou data de volta
+                    if (texto.includes('data de volta')) {
+                        aguardandoDataVolta = true;
+                        return;
+                    }
 
-                    console.log('🎯 Destino válido detectado:', texto);
+                    // Ignora rodapé do Chainlit
+                    if (texto.includes('LLMs podem cometer erros')) return;
 
-                    ultimoDestino = texto;
-                    aguardandoDestino = false;
+                    // Captura destino
+                    if (aguardandoDestino && texto.length <= 40) {
+                        destinoAtual = texto;
+                        aguardandoDestino = false;
+                        return;
+                    }
 
-                    atualizarClimaTabela(texto);
+                    // Captura data de ida
+                    if (aguardandoDataIda && /\d{2}\/\d{2}\/\d{4}/.test(texto)) {
+                        dataIdaAtual = texto;
+                        aguardandoDataIda = false;
+                        return;
+                    }
 
+                    // Captura data de volta e dispara busca
+                    if (aguardandoDataVolta && /\d{2}\/\d{2}\/\d{4}/.test(texto)) {
+                        const dataVoltaAtual = texto;
+                        aguardandoDataVolta = false;
+
+                        const ida = parseDateBR(dataIdaAtual);
+                        const volta = parseDateBR(dataVoltaAtual);
+
+                        if (ida && volta && destinoAtual) {
+                            atualizarClimaTabela(destinoAtual, ida, volta);
+                        }
+                        return;
+                    }
                 });
-
             });
-
         });
-
     });
 
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-
-    console.log("👀 Observer iniciado (modo blindado)");
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /**
- * 6. INICIALIZAÇÃO
+ * 10. INICIALIZAÇÃO
  */
 const observerGeral = new MutationObserver(() => {
     const welcomeScreen = document.querySelector('#welcome-screen');
-
     if (welcomeScreen) {
         injetarBoasVindas();
+        injetarTabelaClima();
         observarDestino();
         injetarSpinner();
     }

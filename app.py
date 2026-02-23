@@ -3,15 +3,14 @@ import sqlite3
 import re
 import hashlib
 import chainlit as cl
-import smtplib
 import urllib.request
 import urllib.parse
 import json
-from email.mime.text import MIMEText
 from crews.travel_crew import CompleteTravelCrew
 from tools.email_tool import enviar_email
 from dotenv import load_dotenv
 import asyncio
+from datetime import datetime
 
 load_dotenv()
 
@@ -20,6 +19,15 @@ with open("public/config.js", "w") as f:
     f.write(f"window._owKey = '{os.getenv('OPENWEATHER_API_KEY')}';")
 
 
+def validar_data(valor: str) -> tuple[bool, str]:
+    formatos = ["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]
+    for fmt in formatos:
+        try:
+            datetime.strptime(valor.strip(), fmt)
+            return True, ""
+        except ValueError:
+            continue
+    return False, "Por favor, digite uma data válida no formato DD/MM/AAAA."
 
 
 def validar_entrada(tipo: str, valor: str) -> tuple[bool, str]:
@@ -67,6 +75,8 @@ def validar_entrada(tipo: str, valor: str) -> tuple[bool, str]:
             return True, ""
 
     return True, ""
+
+
 conn = sqlite3.connect("usuarios.db")
 cursor = conn.cursor()
 cursor.execute("""
@@ -82,82 +92,50 @@ conn.commit()
 
 
 ROTEIRO_MOCK = """
-  ## Guia Completo de Viagem: Rio de Janeiro                                                                                         
-                                                                                                                                     
-  ## 📍 Visão Geral                                                                                                                  
-  O Rio de Janeiro é uma cidade linda e vibrante, localizada na costa sudeste do Brasil. Com uma distância de 430 km da capital      
-  federal, é um destino popular para turistas de todo o mundo. O tempo médio para visitar a cidade é de 6 a 8 horas, dependendo do   
-  tráfego e da rota escolhida. A principal rota para chegar ao Rio é a BR-116, que oferece uma visão deslumbrante da cidade e da     
-  costa.                                                                                                                             
-                                                                                                                                     
-  ## 🚗 Como Chegar                                                                                                                  
-  Para chegar ao Rio de Janeiro, é possível pegar a BR-116, que é a principal rota de acesso à cidade. A distância é de 430 km e o   
-  tempo médio de viagem é de 6 a 8 horas, dependendo do tráfego e da rota escolhida. É importante notar que a BR-116 é uma rodovia   
-  importante e pode ter tráfego intenso, especialmente durante as horas de pico.                                                     
-                                                                                                                                     
-  ## 🗺️ Roteiro Sugerido para 2 Dias                                                                                                 
-                                                                                                                                     
-  ### Dia 1                                                                                                                          
-                                                                                                                                     
-  * **Corcovado - Cristo Redentor** (2 horas)                                                                                        
-  O Cristo Redentor é um dos principais pontos turísticos do Rio de Janeiro e uma das sete maravilhas do mundo. Localizado no topo   
-  do Corcovado, oferece uma visão deslumbrante da cidade e da costa. O motivo de visita é conhecer o Cristo Redentor e aproveitar a  
-  vista incrível.                                                                                                                    
-  * **Praia de Ipanema** (3 horas)                                                                                                   
-  A Praia de Ipanema é uma das principais praias do Rio de Janeiro e um destino popular para turistas. Localizada na zona sul da     
-  cidade, oferece areia branca e águas cristalinas. O motivo de visita é conhecer a Praia de Ipanema e aproveitar o sol e a areia.   
-                                                                                                                                     
-  ### Dia 2                                                                                                                          
-                                                                                                                                     
-  * **Bondinho Pão de Açúcar** (2 horas)                                                                                             
-  O Bondinho Pão de Açúcar é um dos principais pontos turísticos do Rio de Janeiro e oferece uma visão deslumbrante da cidade e da   
-  costa. Localizado no topo do Pão de Açúcar, é um destino popular para turistas. O motivo de visita é conhecer o Pão de Açúcar e    
-  aproveitar a vista incrível.                                                                                                       
-  * **Praia de Copacabana** (3 horas)                                                                                                
-  A Praia de Copacabana é uma das principais praias do Rio de Janeiro e um destino popular para turistas. Localizada na zona sul da  
-  cidade, oferece areia branca e águas cristalinas. O motivo de visita é conhecer a Praia de Copacabana e aproveitar o sol e a       
-  areia.                                                                                                                             
-                                                                                                                                     
-  ## 🍽️ Onde Comer                                                                                                                   
-                                                                                                                                     
-  * **Oseille** (Restaurante francês)                                                                                                
-  O Oseille é um restaurante francês localizado no coração do Rio de Janeiro. Oferece comida francesa de alta qualidade e um         
-  ambiente elegante. O diferencial é a comida francesa de alta qualidade e o ambiente elegante. A faixa de preço é de R$ 50-R$ 100   
-  e a avaliação é de 4,5 estrelas.                                                                                                   
-  * **Ristorante Hotel Cipriani** (Restaurante italiano)                                                                             
-  O Ristorante Hotel Cipriani é um restaurante italiano localizado no Hotel Cipriani. Oferece comida italiana de alta qualidade e    
-  um ambiente elegante. O diferencial é a comida italiana de alta qualidade e o ambiente elegante. A faixa de preço é de R$ 50-R$    
-  100 e a avaliação é de 4,5 estrelas.                                                                                               
-  * **Rudä** (Restaurante contemporâneo)                                                                                             
-  O Rudä é um restaurante contemporâneo localizado no coração do Rio de Janeiro. Oferece comida contemporânea de alta qualidade e    
-  um ambiente elegante. O diferencial é a comida contemporânea de alta qualidade e o ambiente elegante. A faixa de preço é de R$     
-  50-R$ 100 e a avaliação é de 4,5 estrelas.                                                                                         
-  * **Casa Horto** (Restaurante brasileiro)                                                                                          
-  A Casa Horto é um restaurante brasileiro localizado no coração do Rio de Janeiro. Oferece comida brasileira de alta qualidade e    
-  um ambiente elegante. O diferencial é a comida brasileira de alta qualidade e o ambiente elegante. A faixa de preço é de R$ 30-R$  
-  60 e a avaliação é de 4,5 estrelas.                                                                                                
-  * **Fairmont** (Restaurante internacional)                                                                                         
-  O Fairmont é um restaurante internacional localizado no Hotel Fairmont. Oferece comida internacional de alta qualidade e um        
-  ambiente elegante. O diferencial é a comida internacional de alta qualidade e o ambiente elegante. A faixa de preço é de R$ 50-R$  
-  100 e a avaliação é de 4,5 estrelas.                                                                                               
-                                                                                                                                     
-  ## 🏨 Onde Ficar                                                                                                                   
-                                                                                                                                     
-  * **Fairmont** (Luxo)                                                                                                              
-  O Fairmont é um hotel de luxo localizado no coração do Rio de Janeiro. Oferece quartos elegantes e um ambiente sofisticado. A      
-  categoria é de luxo e o preço médio é de R$ 500-R$ 1.000. A avaliação é de 4,5 estrelas e a localização é no centro do Rio de      
-  Janeiro.                                                                                                                           
-  * **Hotel Cipriani** (Intermediário)                                                                                               
-  O Hotel Cipriani é um hotel intermediário localizado no coração do Rio de Janeiro. Oferece quartos confortáveis e um ambiente      
-  elegante. A categoria é de intermediário e o preço médio é de R$ 200-R$ 400. A avaliação é de 4,5 estrelas e a localização é no    
-  centro do Rio de Janeiro.                                                                                                          
-  * **Ibis Rio de Janeiro** (Econômico)                                                                                              
-  O Ibis Rio de Janeiro é um hotel econômico localizado no coração do Rio de Janeiro. Oferece quartos simples e um ambiente          
-  prático. A categoria é de econômico e o preço médio é de R$ 100-R$ 200. A avaliação é de 4 estrelas e a localização é no centro    
-  do Rio de Janeiro.                                                                                                                 
-                                                                                                                                     
-  ## 📚 Fontes                                                                                                                       
-  TripAdvisor  
+  ## Guia Completo de Viagem: Rio de Janeiro
+
+  ## 📍 Visão Geral
+  O Rio de Janeiro é uma cidade linda e vibrante, localizada na costa sudeste do Brasil. Com uma distância de 430 km da capital
+  federal, é um destino popular para turistas de todo o mundo. O tempo médio para visitar a cidade é de 6 a 8 horas, dependendo do
+  tráfego e da rota escolhida. A principal rota para chegar ao Rio é a BR-116, que oferece uma visão deslumbrante da cidade e da
+  costa.
+
+  ## 🚗 Como Chegar
+  Para chegar ao Rio de Janeiro, é possível pegar a BR-116, que é a principal rota de acesso à cidade. A distância é de 430 km e o
+  tempo médio de viagem é de 6 a 8 horas, dependendo do tráfego e da rota escolhida.
+
+  ## 🗺️ Roteiro Sugerido para 2 Dias
+
+  ### Dia 1
+
+  * **Corcovado - Cristo Redentor** (2 horas)
+  O Cristo Redentor é um dos principais pontos turísticos do Rio de Janeiro e uma das sete maravilhas do mundo.
+  * **Praia de Ipanema** (3 horas)
+  A Praia de Ipanema é uma das principais praias do Rio de Janeiro e um destino popular para turistas.
+
+  ### Dia 2
+
+  * **Bondinho Pão de Açúcar** (2 horas)
+  O Bondinho Pão de Açúcar oferece uma visão deslumbrante da cidade e da costa.
+  * **Praia de Copacabana** (3 horas)
+  A Praia de Copacabana é uma das principais praias do Rio de Janeiro.
+
+  ## 🍽️ Onde Comer
+
+  * **Oseille** (Restaurante francês)
+  Comida francesa de alta qualidade. Faixa de preço: R$ 50-R$ 100. Avaliação: 4,5 estrelas.
+  * **Casa Horto** (Restaurante brasileiro)
+  Comida brasileira de alta qualidade. Faixa de preço: R$ 30-R$ 60. Avaliação: 4,5 estrelas.
+
+  ## 🏨 Onde Ficar
+
+  * **Fairmont** (Luxo)
+  Hotel de luxo no coração do Rio. Preço médio: R$ 500-R$ 1.000. Avaliação: 4,5 estrelas.
+  * **Ibis Rio de Janeiro** (Econômico)
+  Hotel econômico com ótima localização. Preço médio: R$ 100-R$ 200. Avaliação: 4 estrelas.
+
+  ## 📚 Fontes
+  TripAdvisor
 """
 
 
@@ -193,7 +171,8 @@ def auth_callback(username: str, password: str):
         identifier=username,
         metadata={"name": name, "role": role}
     )
-    
+
+
 def formatar_roteiro(texto: str) -> str:
     linhas_brutas = texto.split("\n")
     linhas_limpas = []
@@ -211,7 +190,7 @@ def formatar_roteiro(texto: str) -> str:
                 linhas_limpas.append("")
         else:
             buffer_texto.append(l)
-    
+
     if buffer_texto:
         linhas_limpas.append(" ".join(buffer_texto))
 
@@ -236,7 +215,7 @@ def formatar_roteiro(texto: str) -> str:
         elif linha.startswith(("*", "-", "•")):
             linha_limpa = linha.lstrip("*-• ").replace("**", "").strip()
             partes = re.split(r' — | - | \(', linha_limpa, 1)
-            
+
             if len(partes) > 1:
                 nome = partes[0].strip()
                 resto = partes[1].rstrip(")").strip()
@@ -250,11 +229,11 @@ def formatar_roteiro(texto: str) -> str:
 
     saida = "\n".join(resultado)
     saida = re.sub(r'\n{3,}', '\n\n', saida)
-    
+
     return saida.strip()
 
-USE_MOCK = True
 
+USE_MOCK = False
 crew = CompleteTravelCrew()
 
 
@@ -264,12 +243,15 @@ async def start():
     cl.user_session.set("origem", "")
     cl.user_session.set("destino", "")
     cl.user_session.set("dias", 0)
+    cl.user_session.set("data_ida", "")
+    cl.user_session.set("data_volta", "")
     cl.user_session.set("ultimo_roteiro", "")
     cl.user_session.set("corpo_email", "")
 
     app_user = cl.user_session.get("user")
     nome = app_user.metadata['name']
     cl.user_session.set("nome_usuario", nome)
+
 
 @cl.on_message
 async def main(message: cl.Message):
@@ -305,52 +287,81 @@ async def main(message: cl.Message):
         try:
             dias = int(user_msg)
             cl.user_session.set("dias", dias)
-            origem = cl.user_session.get("origem")
-            destino = cl.user_session.get("destino")
-
-            loader = cl.Message(content="Pesquisando e gerando seu roteiro")
-            await loader.send()
-
-            if USE_MOCK:
-                await asyncio.sleep(4)
-                roteiro_bruto = ROTEIRO_MOCK
-                corpo_email = ROTEIRO_MOCK  # mock usa o mesmo conteúdo
-            else:
-                loop = asyncio.get_event_loop()
-                resultado = await loop.run_in_executor(
-                    None, crew.run, origem, destino, dias
-                )
-                roteiro_bruto = resultado["relatorio_destino"]
-                corpo_email = resultado["corpo_email"]
-
-            await loader.remove()
-
-            roteiro_formatado = formatar_roteiro(roteiro_bruto)
-            cl.user_session.set("ultimo_roteiro", roteiro_formatado)
-            cl.user_session.set("corpo_email", corpo_email)
-
-            msg = cl.Message(content="")
-            await msg.send()
-
-            palavras = roteiro_formatado.split(" ")
-            buffer = ""
-            for i, palavra in enumerate(palavras):
-                buffer += palavra + " "
-                if i % 5 == 0:
-                    msg.content = buffer
-                    await msg.update()
-                    await asyncio.sleep(0.05)
-
-            msg.content = roteiro_formatado
-            await msg.update()
-
-            cl.user_session.set("estado", "email")
-            await cl.Message(
-                content="✉️ Deseja receber este roteiro por e-mail? Se sim, digite seu e-mail."
-            ).send()
+            cl.user_session.set("estado", "data_ida")
+            await cl.Message(content="📅 Qual é a data de partida? (DD/MM/AAAA)").send()
 
         except ValueError:
             await cl.Message(content="⚠️ Por favor, digite um número válido de dias.").send()
+
+    elif estado == "data_ida":
+        valida, motivo = validar_data(user_msg)
+        if not valida:
+            await cl.Message(content=f"⚠️ {motivo}").send()
+            return
+        cl.user_session.set("data_ida", user_msg.strip())
+        cl.user_session.set("estado", "data_volta")
+        await cl.Message(content="📅 Qual é a data de volta? (DD/MM/AAAA)").send()
+
+    elif estado == "data_volta":
+        valida, motivo = validar_data(user_msg)
+        if not valida:
+            await cl.Message(content=f"⚠️ {motivo}").send()
+            return
+        cl.user_session.set("data_volta", user_msg.strip())
+
+        origem = cl.user_session.get("origem")
+        destino = cl.user_session.get("destino")
+        dias = cl.user_session.get("dias")
+        data_ida = cl.user_session.get("data_ida")
+        data_volta = user_msg.strip()
+
+        # Publica as datas no config.js para o JS ler
+        with open("public/config.js", "w") as f:
+            f.write(f"window._owKey = '{os.getenv('OPENWEATHER_API_KEY')}';\n")
+            f.write(f"window._dataIda = '{data_ida}';\n")
+            f.write(f"window._dataVolta = '{data_volta}';\n")
+            f.write(f"window._destino = '{destino}';\n")
+
+        loader = cl.Message(content="Pesquisando e gerando seu roteiro")
+        await loader.send()
+
+        if USE_MOCK:
+            await asyncio.sleep(4)
+            roteiro_bruto = ROTEIRO_MOCK
+            corpo_email = ROTEIRO_MOCK
+        else:
+            loop = asyncio.get_event_loop()
+            resultado = await loop.run_in_executor(
+                None, crew.run, origem, destino, dias
+            )
+            roteiro_bruto = resultado["relatorio_destino"]
+            corpo_email = resultado["corpo_email"]
+
+        await loader.remove()
+
+        roteiro_formatado = formatar_roteiro(roteiro_bruto)
+        cl.user_session.set("ultimo_roteiro", roteiro_formatado)
+        cl.user_session.set("corpo_email", corpo_email)
+
+        msg = cl.Message(content="")
+        await msg.send()
+
+        palavras = roteiro_formatado.split(" ")
+        buffer = ""
+        for i, palavra in enumerate(palavras):
+            buffer += palavra + " "
+            if i % 5 == 0:
+                msg.content = buffer
+                await msg.update()
+                await asyncio.sleep(0.05)
+
+        msg.content = roteiro_formatado
+        await msg.update()
+
+        cl.user_session.set("estado", "email")
+        await cl.Message(
+            content="✉️ Deseja receber este roteiro por e-mail? Se sim, digite seu e-mail."
+        ).send()
 
     elif estado == "email":
         if "@" not in user_msg or "." not in user_msg:
@@ -358,16 +369,22 @@ async def main(message: cl.Message):
             return
 
         corpo = cl.user_session.get("corpo_email")
-        loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            None, enviar_email, user_msg, "✈️ Seu Roteiro de Viagem está pronto!", corpo
-        )
-        await cl.Message(content="✅ Roteiro enviado com sucesso!").send()
+
+        async def enviar_email_async(destino, assunto, corpo):
+            try:
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, enviar_email, destino, assunto, corpo)
+                print(f"✅ Email enviado para {destino}")
+                return True
+            except Exception as e:
+                print(f"❌ Erro ao enviar email: {e}")
+                return False
+
+        sucesso = await enviar_email_async(user_msg, "✈️ Seu Roteiro de Viagem está pronto!", corpo)
+        if sucesso:
+            await cl.Message(content="✅ Roteiro enviado com sucesso!").send()
+        else:
+            await cl.Message(content="❌ Não foi possível enviar o e-mail.").send()
+
         cl.user_session.set("estado", "origem")
         await cl.Message(content="🔄 Para planejar uma nova viagem, digite sua cidade de origem.").send()
-
-    else:
-        cl.user_session.set("estado", "origem")
-        await cl.Message(
-            content="⚠️ Não entendi. Por favor, digite sua cidade de origem."
-        ).send()
