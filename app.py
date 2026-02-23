@@ -15,6 +15,13 @@ import asyncio
 
 load_dotenv()
 
+os.makedirs("public", exist_ok=True)
+with open("public/config.js", "w") as f:
+    f.write(f"window._owKey = '{os.getenv('OPENWEATHER_API_KEY')}';")
+
+
+
+
 def validar_entrada(tipo: str, valor: str) -> tuple[bool, str]:
     erros = {
         "cidade_origem": f"'{valor}' não parece ser uma cidade de origem válida. Tente novamente.",
@@ -246,7 +253,7 @@ def formatar_roteiro(texto: str) -> str:
     
     return saida.strip()
 
-USE_MOCK = False
+USE_MOCK = True
 
 crew = CompleteTravelCrew()
 
