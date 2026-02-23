@@ -9,44 +9,63 @@ const style = document.createElement('style');
 style.textContent = `
     .tabela-destinos {
         position: fixed;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
+        right: 20px;
+        top:75px;   
         z-index: 9999;
-        background: #1a1a1a;
-        border-radius: 8px;
-        padding: 10px 12px;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-        width: 250px; /* menor */
         font-family: sans-serif;
-        font-size: 0.8rem; /* texto menor */
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: transparent; 
+        box-shadow: none;        
+        padding: 0;              
     }
 
-    .tabela-destinos input {
-        width: 100%;
-        background: #111;
-        border: 1px solid #2a2a2a;
-        border-radius: 5px;
-        padding: 6px;
-        color: #aaa;
-        margin-bottom: 6px;
+    .clima-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .clima-header img {
+        width: 38px;
+    }
+
+    .clima-temp {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #ffffff;
+        line-height: 1;
+    }
+
+    .clima-desc {
         font-size: 0.75rem;
+        color: #aaaaaa;
+        text-transform: capitalize;
     }
 
-    .tabela-destinos button {
-        width: 100%;
-        background: #2a2a2a;
-        border: 1px solid #333;
-        border-radius: 5px;
-        padding: 6px;
-        color: #aaa;
-        cursor: pointer;
-        margin-bottom: 8px;
+    .clima-cidade {
+        font-size: 0.7rem;
+        color: #888888;
+    }
+
+    .clima-input {
+        width: 140px;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid #444;
+        padding: 4px 0;
+        color: #ccc;
         font-size: 0.75rem;
+        outline: none;
     }
 
-    .tabela-destinos img {
-        width: 28px; /* ícone menor */
+    .clima-input::placeholder {
+        color: #666;
+    }
+
+    .clima-input:focus {
+        border-bottom: 1px solid #888;
     }
 `;
 document.head.appendChild(style);
@@ -60,31 +79,26 @@ async function buscarClima(cidade) {
 
         let apiKey = window._owKey;
         if (!apiKey) {
-            console.log('🔑 [CLIMA] Aguardando API key...');
             await new Promise(r => setTimeout(r, 1000));
             apiKey = window._owKey;
         }
 
         if (!apiKey) {
-            console.log('❌ [CLIMA] API key não encontrada');
+            console.log('❌ API key não encontrada');
             return null;
         }
 
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cidade)}&appid=${apiKey}&units=metric&lang=pt_br`;
 
-        console.log('📡 [CLIMA] URL:', url);
+        console.log('📡 URL:', url);
 
         const res = await fetch(url);
         const data = await res.json();
 
-        console.log('📥 [CLIMA] Resposta da API:', data);
-
         if (data.cod !== 200) {
-            console.log('⚠️ [CLIMA] Cidade não encontrada');
+            console.log('⚠️ Cidade não encontrada');
             return null;
         }
-
-        console.log('✅ [CLIMA] Clima recebido com sucesso');
 
         return {
             cidade: data.name,
@@ -94,38 +108,30 @@ async function buscarClima(cidade) {
         };
 
     } catch (e) {
-        console.error('💥 [CLIMA] Erro na requisição:', e);
+        console.error('💥 Erro na requisição:', e);
         return null;
     }
 }
 
 async function atualizarClimaTabela(cidade) {
-    const resultado = document.getElementById('clima-resultado');
-    if (!resultado) return;
 
-    resultado.innerHTML = '<span style="color:#555">Buscando...</span>';
-
-    const clima = await buscarClima(cidade);
-
-    if (!clima) {
-        resultado.innerHTML = '<span style="color:#ff6b6b">Não encontrado.</span>';
-        return;
+    // 🔥 Cria o widget SOMENTE quando tiver destino
+    if (!document.querySelector('.tabela-destinos')) {
+        injetarTabelaClima();
     }
 
-    document.getElementById('clima-cidade').value = cidade;
+    const clima = await buscarClima(cidade);
+    if (!clima) return;
 
-    resultado.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px;">
-            <img src="https://openweathermap.org/img/wn/${clima.icone}.png" width="40"/>
-            <div>
-                <div style="color:#fff; font-weight:600;">${clima.temp}°C</div>
-                <div style="color:#888; font-size:0.75rem;">${clima.descricao}</div>
-                <div style="color:#555; font-size:0.65rem;">${clima.cidade}</div>
-            </div>
-        </div>
-    `;
+    console.log('🌡 Atualizando widget com clima de:', cidade);
+
+    document.querySelector('.clima-temp').innerText = `${clima.temp}°C`;
+    document.querySelector('.clima-desc').innerText = clima.descricao;
+    document.querySelector('.clima-cidade').innerText = clima.cidade;
+
+    document.getElementById('clima-icone').src =
+        `https://openweathermap.org/img/wn/${clima.icone}@2x.png`;
 }
-
 /**
  * 3. BOAS-VINDAS
  */
@@ -152,7 +158,7 @@ function injetarBoasVindas() {
 }
 
 /**
- * 4. TABELA CLIMA (SÓ DESTINO)
+ * 4. WIDGET CLIMA
  */
 function injetarTabelaClima() {
     if (document.querySelector('.tabela-destinos')) return;
@@ -160,36 +166,22 @@ function injetarTabelaClima() {
     const div = document.createElement('div');
     div.className = 'tabela-destinos';
     div.innerHTML = `
-        <p style="font-size:0.7rem; color:#555; margin-bottom:10px;">
-            🌤 Clima no destino
-        </p>
-
-        <input id="clima-cidade" type="text" placeholder="Digite o destino"
-            style="width:100%; background:#111; border:1px solid #2a2a2a;
-            border-radius:6px; padding:8px; color:#aaa; margin-bottom:8px;"/>
-
-        <button id="clima-btn"
-            style="width:100%; background:#2a2a2a; border:1px solid #333;
-            border-radius:6px; padding:8px; color:#aaa; cursor:pointer; margin-bottom:10px;">
-            🔍 Verificar clima
-        </button>
-
-        <div id="clima-resultado"
-            style="color:#666; text-align:center; min-height:40px;">
-            Digite um destino.
+        <div class="clima-header">
+            <img src="" id="clima-icone" />
+            <div>
+                <div class="clima-temp">--°C</div>
+                <div class="clima-desc">Aguardando...</div>
+                <div class="clima-cidade">Destino</div>
+            </div>
         </div>
+
     `;
 
     document.body.appendChild(div);
-
-    document.getElementById('clima-btn').addEventListener('click', () => {
-        const cidade = document.getElementById('clima-cidade').value.trim();
-        if (cidade) atualizarClimaTabela(cidade);
-    });
 }
 
 /**
- * 5. OBSERVAR DESTINO
+ * 5. OBSERVAR DESTINO (BLINDADO)
  */
 let aguardandoDestino = false;
 let ultimoDestino = '';
@@ -219,14 +211,12 @@ function observarDestino() {
                     const texto = artigo.innerText.trim();
                     if (!texto) return;
 
-                    // 🔎 Detecta pergunta do bot
                     if (texto.includes('Qual é o destino da sua viagem')) {
                         console.log('🤖 Bot perguntou destino');
                         aguardandoDestino = true;
                         return;
                     }
 
-                    // 🛑 Ignorar textos do sistema
                     if (
                         texto.includes('LLMs podem cometer erros') ||
                         texto.includes('Verifique informações')
@@ -234,13 +224,8 @@ function observarDestino() {
                         return;
                     }
 
-                    // 🛑 Ignorar se não estamos aguardando
                     if (!aguardandoDestino) return;
-
-                    // 🛑 Ignorar textos muito longos (cidade não é texto grande)
                     if (texto.length > 40) return;
-
-                    // 🛑 Evitar repetir o mesmo destino
                     if (texto === ultimoDestino) return;
 
                     console.log('🎯 Destino válido detectado:', texto);
@@ -274,10 +259,8 @@ const observerGeral = new MutationObserver(() => {
 
     if (welcomeScreen) {
         injetarBoasVindas();
-        injetarTabelaClima();
         observarDestino();
     }
 });
 
 observerGeral.observe(document.body, { childList: true, subtree: true });
-
