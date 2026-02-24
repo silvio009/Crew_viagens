@@ -1,6 +1,3 @@
-/**
- * 1. CONFIGURAÇÃO E ESTILOS
- */
 const configScript = document.createElement('script');
 configScript.src = '/public/config.js?t=' + Date.now();
 document.head.appendChild(configScript);
@@ -27,9 +24,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-/**
- * 2. SPINNER
- */
+/* SPINNER */
 function injetarSpinner() {
     const observer = new MutationObserver(() => {
         const mensagens = document.querySelectorAll('.prose div[role="article"]');
@@ -51,11 +46,8 @@ function injetarSpinner() {
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-/**
- * 3. FUNÇÕES DE DATA
- */
+/* FUNÇÕES DE DATA */
 function parseDateBR(str) {
-    // Aceita DD/MM/YYYY
     const parts = str.trim().split('/');
     if (parts.length !== 3) return null;
     return new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
@@ -75,9 +67,7 @@ function formatarDia(date) {
     return date.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
 }
 
-/**
- * 4. BUSCA DE CLIMA
- */
+/* BUSCA DE CLIMA */
 async function buscarPrevisao(cidade) {
     let apiKey = window._owKey;
     if (!apiKey) {
@@ -117,11 +107,7 @@ async function buscarClimaAtual(cidade) {
     }
 }
 
-/**
- * 5. MONTA OS DIAS DO PERÍODO
- * Para datas dentro dos 5 dias: usa previsão real
- * Para datas fora dos 5 dias: replica padrão da semana atual
- */
+/* MONTA OS DIAS DO PERÍODO */
 async function montarClimasPeriodo(cidade, dataIda, dataVolta) {
     const diasPeriodo = gerarListaDias(dataIda, dataVolta);
     const hoje = new Date();
@@ -132,7 +118,6 @@ async function montarClimasPeriodo(cidade, dataIda, dataVolta) {
     const previsao = await buscarPrevisao(cidade);
     const atual = await buscarClimaAtual(cidade);
 
-    // Mapa de previsões reais por data YYYY-MM-DD
     const mapaPrevisao = {};
     if (previsao && previsao.list) {
         previsao.list.forEach(item => {
@@ -148,12 +133,11 @@ async function montarClimasPeriodo(cidade, dataIda, dataVolta) {
         });
     }
 
-    // Padrão da semana atual para replicar
     const padraoDiaSemana = {};
     if (previsao && previsao.list) {
         previsao.list.forEach(item => {
             const d = new Date(item.dt * 1000);
-            const diaSemana = d.getDay(); // 0=dom, 1=seg...
+            const diaSemana = d.getDay();
             if (!padraoDiaSemana[diaSemana]) {
                 padraoDiaSemana[diaSemana] = {
                     temp: Math.round(item.main.temp),
@@ -164,7 +148,6 @@ async function montarClimasPeriodo(cidade, dataIda, dataVolta) {
         });
     }
 
-    // Fallback: clima atual
     const fallback = atual ? {
         temp: Math.round(atual.main.temp),
         icone: atual.weather[0].icon,
@@ -191,9 +174,7 @@ async function montarClimasPeriodo(cidade, dataIda, dataVolta) {
     });
 }
 
-/**
- * 6. ATUALIZA A TABELA COM OS DADOS
- */
+/* ATUALIZA A TABELA COM OS DADOS */
 async function atualizarClimaTabela(cidade, dataIda, dataVolta) {
     const container = document.querySelector('.tabela-destinos');
     if (!container) return;
@@ -228,7 +209,6 @@ async function atualizarClimaTabela(cidade, dataIda, dataVolta) {
         <div class="clima-rodape">~est. = estimativa baseada no padrão atual</div>
     `;
 
-    // Aguarda o DOM renderizar e então anima
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             const icones = container.querySelectorAll('.clima-card-dia img');
@@ -250,9 +230,6 @@ async function atualizarClimaTabela(cidade, dataIda, dataVolta) {
     });
 }
 
-/**
- * 7. BOAS-VINDAS
- */
 function injetarBoasVindas() {
     if (document.querySelector('.boas-vindas')) return;
 
@@ -271,9 +248,7 @@ function injetarBoasVindas() {
     }
 }
 
-/**
- * 8. WIDGET CLIMA (INICIAL)
- */
+/* WIDGET CLIMA */
 function injetarTabelaClima() {
     if (document.querySelector('.tabela-destinos')) return;
 
@@ -283,9 +258,7 @@ function injetarTabelaClima() {
     document.body.appendChild(div);
 }
 
-/**
- * 9. OBSERVAR CHAT — destino e datas
- */
+/**OBSERVAR CHAT — destino e datas*/
 let aguardandoDestino = false;
 let aguardandoDataIda = false;
 let aguardandoDataVolta = false;
@@ -310,42 +283,32 @@ function observarDestino() {
                     const texto = artigo.innerText.trim();
                     if (!texto) return;
 
-                    // Bot perguntou destino
                     if (texto.includes('Qual é o destino da sua viagem')) {
                         aguardandoDestino = true;
                         return;
                     }
 
-                    // Bot perguntou data de ida
                     if (texto.includes('data de partida')) {
                         aguardandoDataIda = true;
                         return;
                     }
-
-                    // Bot perguntou data de volta
                     if (texto.includes('data de volta')) {
                         aguardandoDataVolta = true;
                         return;
                     }
-
-                    // Ignora rodapé do Chainlit
                     if (texto.includes('LLMs podem cometer erros')) return;
 
-                    // Captura destino
                     if (aguardandoDestino && texto.length <= 40) {
                         destinoAtual = texto;
                         aguardandoDestino = false;
                         return;
                     }
 
-                    // Captura data de ida
                     if (aguardandoDataIda && /\d{2}\/\d{2}\/\d{4}/.test(texto)) {
                         dataIdaAtual = texto;
                         aguardandoDataIda = false;
                         return;
                     }
-
-                    // Captura data de volta e dispara busca
                     if (aguardandoDataVolta && /\d{2}\/\d{2}\/\d{4}/.test(texto)) {
                         const dataVoltaAtual = texto;
                         aguardandoDataVolta = false;
@@ -366,27 +329,33 @@ function observarDestino() {
     observer.observe(document.body, { childList: true, subtree: true });
 }
 
-/**
- * 10. INICIALIZAÇÃO
- */
+/*INICIALIZAÇÃO*/
 const observerGeral = new MutationObserver(() => {
     const welcomeScreen = document.querySelector('#welcome-screen');
-    if (welcomeScreen) {
+    const loginForm = document.querySelector('form input[name="password"]');
+
+    if (welcomeScreen && !loginForm) {
         injetarBoasVindas();
         injetarTabelaClima();
+        injetarDrawerSeta();
         observarDestino();
         injetarSpinner();
     }
 });
 
 observerGeral.observe(document.body, { childList: true, subtree: true });
-
+setTimeout(() => {
+    const loginForm = document.querySelector('form input[name="password"]');
+    if (!loginForm) {
+        injetarTabelaClima();
+        injetarDrawerSeta();
+    }
+}, 1000);
 
 // Retirando o logo da tela de login 
 function removeChainlitLoginLogo() {
     const logos = document.querySelectorAll("img.logo");
     logos.forEach(logo => {
-        // Remove somente se for o logo padrão do Chainlit
         if (logo.src.includes("/logo?theme=")) {
             logo.remove();
         }
@@ -464,9 +433,7 @@ const intervaloLink = setInterval(() => {
 }, 100);
 
 
-// Fica observando o DOM até o botão aparecer
 const observer_button = new MutationObserver(() => {
-    // Tenta encontrar o link/botão de "criar conta" do Chainlit
     const links = document.querySelectorAll('a, button');
     
     links.forEach(el => {
@@ -490,3 +457,52 @@ observer_button.observe(document.body, {
     childList: true,
     subtree: true
 });
+
+function injetarDrawerSeta() {
+    if (document.querySelector('.drawer-seta')) return;
+
+    const seta = document.createElement('button');
+    seta.className = 'drawer-seta';
+    seta.id = 'drawer-seta';
+    seta.innerHTML = '🌤 ❯';
+
+    seta.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        background: rgba(45, 45, 50, 0.95);
+        border-radius: 8px 0 0 8px;
+        padding: 12px 6px;
+        cursor: pointer;
+        z-index: 1000;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-right: none;
+        color: #d4d803;
+        font-size: 1rem;
+        writing-mode: vertical-lr;
+        align-items: center;
+        gap: 6px;
+    `;
+
+    document.body.appendChild(seta);
+
+    function verificarTamanho() {
+        if (window.innerWidth <= 768) {
+            seta.style.display = 'flex';
+        } else {
+            seta.style.display = 'none';
+        }
+    }
+
+    verificarTamanho();
+    window.addEventListener('resize', verificarTamanho);
+
+    seta.addEventListener('click', () => {
+        const widget = document.querySelector('.tabela-destinos');
+        const aberto = widget.classList.toggle('aberto');
+        seta.innerHTML = aberto ? '🌤 ❮' : '🌤 ❯';
+        seta.style.right = aberto ? '260px' : '0';
+    });
+}

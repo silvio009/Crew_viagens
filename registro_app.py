@@ -22,6 +22,7 @@ HTML = """
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Criar Conta - TravelCrew Agency</title>
     <link rel="icon" href="http://localhost:8000/public/favicon.png" type="image/png" />
     <style>
@@ -35,19 +36,26 @@ HTML = """
         input:focus {{ border-color:#d4d803; }}
         .btn {{ width:100%; padding:11px; background:#d4d803; color:#111; font-size:0.95rem; font-weight:700; border:none; border-radius:8px; cursor:pointer; margin-top:4px; }}
         .btn:hover {{ background:#bfc202; }}
-        .link {{ margin-top:18px; color:#aaa; font-size:0.88rem; }}
+        .link {{ margin-top:18px; color:#aaa; font-size:0.88rem; text-align:center; }}
         .link a {{ color:#d4d803; text-decoration:none; font-weight:500; }}
         .msg {{ padding:12px; border-radius:8px; font-size:0.85rem; margin-bottom:14px; width:100%; text-align:center; }}
         .erro {{ background:#3a1a1a; border:1px solid #ff4444; color:#ff6b6b; }}
         .ok {{ background:#1a3a1a; border:1px solid #44ff44; color:#6bff6b; }}
         .right {{ width:50%; background:#2d2d2d; display:flex; justify-content:center; align-items:center; }}
-        .right img {{ width:650px; }}
+        .right img {{ width:320px; }}
+
+        @media (max-width: 768px) {{
+            body {{ flex-direction:column; height:auto; min-height:100vh; overflow:auto; }}
+            .right {{ display:none; }}
+            .left {{ width:100%; padding:40px 24px; min-height:100vh; justify-content:center; }}
+            .left h1 {{ font-size:1rem; }}
+        }}
     </style>
 </head>
 <body>
     <div class="left">
         <h1>Crie sua conta para planejar sua próxima experiência de viagem</h1>
-        {msg}
+        {{msg}}
         <form method="post" style="width:100%">
             <div class="group">
                 <label>Usuário</label>

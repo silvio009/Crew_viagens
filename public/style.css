@@ -242,3 +242,55 @@ span.rounded-full.bg-primary {
     50%  { transform: scale(1.15); filter: brightness(1.4); }
     100% { transform: scale(1);    filter: brightness(1); }
 }
+
+@media (max-width: 768px) {
+    .tabela-destinos {
+        position: fixed;
+        top: 50%;
+        right: -260px; /* escondido fora da tela */
+        transform: translateY(-50%);
+        width: 260px;
+        max-height: 70vh;
+        overflow-y: auto;
+        transition: right 0.3s ease;
+        border-radius: 16px 0 0 16px;
+        z-index: 999;
+    }
+
+    .tabela-destinos.aberto {
+        right: 0;
+    }
+
+    .clima-toggle-btn {
+        display: none; /* esconde o botão antigo */
+    }
+
+    .drawer-seta {
+        display: flex;
+    }
+}
+
+.drawer-seta {
+    display: none;
+    position: fixed;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    background: rgba(45, 45, 50, 0.95);
+    border-radius: 8px 0 0 8px;
+    padding: 12px 6px;
+    cursor: pointer;
+    z-index: 1000;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-right: none;
+    color: #d4d803;
+    font-size: 1rem;
+    writing-mode: vertical-lr;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
+}
+
+.drawer-seta:hover {
+    background: rgba(60, 60, 65, 0.98);
+}
