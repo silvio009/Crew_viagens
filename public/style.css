@@ -114,78 +114,84 @@ span.rounded-full.bg-primary {
     
     .tabela-destinos {
         position: fixed;
+        top: 90px;
         right: 20px;
-        top: 60px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        padding: 18px;
-        border-radius: 28px;
-        backdrop-filter: blur(40px);
-        color: white;
         width: 220px;
-        transition: background 0.6s ease;
-        
+        background: rgba(45, 45, 50, 0.85); /* ← mais claro e menos opaco */
+        backdrop-filter: blur(20px);
+        border-radius: 20px;
+        max-height: calc(100vh - 140px);
+        overflow-y: auto; 
+        padding: 16px;
+        z-index: 999;
+        border: 1px solid rgba(255,255,255,0.12);
     }
-    
-    .clima-header-apple {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
+
+    .clima-cidade {
+        font-size: 0.75rem;
+        color: #bbb; /* era #888 */
         text-align: center;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
     }
-    
-    .clima-header-apple img {
-        width: 55px;
+
+    .clima-periodo {
+        font-size: 0.7rem;
+        color: #888; /* era #555 */
+        text-align: center;
+        margin-bottom: 14px;
     }
-    
-    .clima-calendario-coluna {
+
+    .clima-dias-wrapper {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .clima-card-dia {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-    }
-    
-    .clima-dia-coluna {
-        display: flex;
-        justify-content: space-between;
         align-items: center;
-        font-size: 14px;
-        padding: 6px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.08);
+        gap: 4px;
+        background: rgba(255,255,255,0.07); /* era 0.04 */
+        border-radius: 12px;
+        padding: 8px 10px;
+        min-width: 52px;
+        flex: 1 1 52px;
+        max-width: 70px;
     }
-    
-    .clima-dia-coluna img {
-        width: 24px;
+
+    .clima-card-dia .dia-label {
+        font-size: 0.6rem;
+        color: #aaa; /* era #666 */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
-    
-    
-    .clima-sol {
-        background: linear-gradient(135deg, #f6d365, #fda085);
+
+    .clima-card-dia img {
+        width: 32px;
+        height: 32px;
     }
-    
-    /* 🌧 CHUVA */
-    .clima-chuva {
-        background: linear-gradient(135deg, #4facfe, #00f2fe);
+
+    .clima-card-dia .dia-temp {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #ffffff;
     }
-    
-    /* ☁️ NUBLADO */
-    .clima-nublado {
-        background: linear-gradient(135deg, #757f9a, #d7dde8);
+
+    .clima-card-dia .dia-est {
+        font-size: 0.5rem;
+        color: #777; /* era #444 */
     }
-    
-    /* 🌙 NOITE */
-    .clima-noite.clima-sol {
-        background: linear-gradient(135deg, #141E30, #243B55);
-    }
-    
-    .clima-noite.clima-chuva {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    }
-    
-    .clima-noite.clima-nublado {
-        background: linear-gradient(135deg, #232526, #414345);
+
+    .clima-rodape {
+        font-size: 0.55rem;
+        color: #666; /* era #444 */
+        text-align: center;
+        margin-top: 20px;
     }
     
     
@@ -230,3 +236,9 @@ span.rounded-full.bg-primary {
         line-height: 1.3 !important;
         font-size: 20px !important;   
     }
+
+@keyframes pulseClima {
+    0%   { transform: scale(1);    filter: brightness(1); }
+    50%  { transform: scale(1.15); filter: brightness(1.4); }
+    100% { transform: scale(1);    filter: brightness(1); }
+}

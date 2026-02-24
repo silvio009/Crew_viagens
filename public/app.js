@@ -198,33 +198,56 @@ async function atualizarClimaTabela(cidade, dataIda, dataVolta) {
     const container = document.querySelector('.tabela-destinos');
     if (!container) return;
 
-    container.innerHTML = `<div style="color:#555; font-size:0.75rem; text-align:center; padding:20px;">Buscando clima...</div>`;
+    container.innerHTML = `<div style="color:#555;font-size:0.75rem;text-align:center;padding:20px;">Buscando clima...</div>`;
 
     const climas = await montarClimasPeriodo(cidade, dataIda, dataVolta);
 
     if (!climas || climas.length === 0) {
-        container.innerHTML = `<div style="color:#ff6b6b; font-size:0.75rem; text-align:center; padding:20px;">Clima não encontrado.</div>`;
+        container.innerHTML = `<div style="color:#ff6b6b;font-size:0.75rem;text-align:center;padding:20px;">Clima não encontrado.</div>`;
         return;
     }
 
+    const primeiroDia = climas[0].label.split(',')[1]?.trim() || '';
+    const ultimoDia = climas[climas.length - 1].label.split(',')[1]?.trim() || '';
+
     const diasHTML = climas.map(d => `
-        <div style="display:flex; flex-direction:column; align-items:center; gap:2px; min-width:52px;">
-            <div style="font-size:0.62rem; color:#666;">${d.label}</div>
-            <img src="https://openweathermap.org/img/wn/${d.icone}.png" style="width:28px;height:28px;"/>
-            <div style="font-size:0.78rem; color:#ccc; font-weight:600;">${d.temp}°</div>
-            ${d.replicado ? '<div style="font-size:0.55rem; color:#444;">~est.</div>' : ''}
+        <div class="clima-card-dia">
+            <span class="dia-label">${d.label.split(',')[0]}</span>
+            <img src="https://openweathermap.org/img/wn/${d.icone}.png" />
+            <span class="dia-temp">${d.temp}°</span>
+            ${d.replicado ? '<span class="dia-est">~est.</span>' : ''}
         </div>
     `).join('');
 
     container.innerHTML = `
-        <div style="font-size:0.62rem; color:#555; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">
-            🌤 ${cidade} — ${climas[0].label.split(',')[1]?.trim() || ''} → ${climas[climas.length-1].label.split(',')[1]?.trim() || ''}
-        </div>
-        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:center;">
+        <div class="clima-cidade">🌤 ${cidade}</div>
+        <div class="clima-periodo">${primeiroDia} → ${ultimoDia}</div>
+        <div class="clima-dias-wrapper">
             ${diasHTML}
         </div>
-        <div style="font-size:0.55rem; color:#444; margin-top:6px; text-align:center;">~est. = estimativa baseada no padrão atual</div>
+        <div class="clima-rodape">~est. = estimativa baseada no padrão atual</div>
     `;
+
+    // Aguarda o DOM renderizar e então anima
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            const icones = container.querySelectorAll('.clima-card-dia img');
+            icones.forEach((img, i) => {
+                img.style.opacity = '0';
+                img.style.transform = 'scale(0.8)';
+
+                setTimeout(() => {
+                    img.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    img.style.opacity = '1';
+                    img.style.transform = 'scale(1)';
+
+                    setTimeout(() => {
+                        img.style.animation = `pulseClima 2.5s ease-in-out ${i * 0.3}s infinite`;
+                    }, 400);
+                }, i * 150);
+            });
+        });
+    });
 }
 
 /**

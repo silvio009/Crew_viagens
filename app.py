@@ -234,7 +234,7 @@ def formatar_roteiro(texto: str) -> str:
     return saida.strip()
 
 
-USE_MOCK = False
+USE_MOCK = True
 crew = CompleteTravelCrew()
 
 
@@ -371,21 +371,17 @@ async def main(message: cl.Message):
 
         corpo = cl.user_session.get("corpo_email")
 
-        async def enviar_email_async(destino, assunto, corpo):
-            try:
-                loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, enviar_email, destino, assunto, corpo)
-                print(f"✅ Email enviado para {destino}")
-                return True
-            except Exception as e:
-                print(f"❌ Erro ao enviar email: {e}")
-                return False
-
-        sucesso = await enviar_email_async(user_msg, "✈️ Seu Roteiro de Viagem está pronto!", corpo)
-        if sucesso:
-            await cl.Message(content="✅ Roteiro enviado com sucesso!").send()
-        else:
-            await cl.Message(content="❌ Não foi possível enviar o e-mail.").send()
+        try:
+            loop = asyncio.get_event_loop()
+            sucesso = await loop.run_in_executor(None, enviar_email, user_msg, "✈️ Seu Roteiro de Viagem está pronto!", corpo)
+            
+            if sucesso:
+                await cl.Message(content="✅ Roteiro enviado com sucesso!").send()
+            else:
+                await cl.Message(content="❌ Não foi possível enviar o e-mail.").send()
+        except Exception as e:
+            print(f"❌ Erro ao enviar email: {e}")
+            await cl.Message(content="❌ Erro ao enviar o e-mail.").send()
 
         cl.user_session.set("estado", "origem")
         await cl.Message(content="🔄 Para planejar uma nova viagem, digite sua cidade de origem.").send()

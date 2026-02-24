@@ -224,4 +224,5 @@ def enviar_email(destinatario: str, assunto: str, corpo: str):
         return True
 
     except Exception as e:
+        print(f"❌ Erro ao enviar email: {e}")
         return False
