@@ -6,3 +6,5 @@ __pycache__/
 .env
 .chainlit/
 config.js
+*.db
+*.sqlite

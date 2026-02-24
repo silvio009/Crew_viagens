@@ -357,3 +357,113 @@ const observerGeral = new MutationObserver(() => {
 });
 
 observerGeral.observe(document.body, { childList: true, subtree: true });
+
+
+// Retirando o logo da tela de login 
+function removeChainlitLoginLogo() {
+    const logos = document.querySelectorAll("img.logo");
+    logos.forEach(logo => {
+        // Remove somente se for o logo padrão do Chainlit
+        if (logo.src.includes("/logo?theme=")) {
+            logo.remove();
+        }
+    });
+}
+
+// Remove qualquer logo já existente
+removeChainlitLoginLogo();
+
+// Observa a página e remove o logo do Chainlit caso seja recriado dinamicamente
+const observer = new MutationObserver(removeChainlitLoginLogo);
+observer.observe(document.body, { childList: true, subtree: true });
+
+
+// alterando o texto da tala de entrada do login
+function atualizarH1() {
+    const h1Span = document.querySelector('h1.text-2xl.font-bold span');
+    if (h1Span) {
+        h1Span.textContent = "Faça login para organizar sua próxima experiência de viagem";
+        clearInterval(intervalo); 
+    }
+}
+function alterarLabelEmail() {
+    const spanEmail = document.querySelector('label[for="email"] span');
+    
+    if (spanEmail) {
+        spanEmail.textContent = "Usuário";
+        clearInterval(intervaloEmail);
+    }
+}
+
+
+function alterarPlaceholderEmail() {
+    const inputEmail = document.querySelector('input#email');
+
+    if (inputEmail) {
+        inputEmail.placeholder = "";
+        clearInterval(intervaloPlaceholder);
+    }
+}
+
+const intervalo = setInterval(atualizarH1, 100);
+const intervaloEmail = setInterval(alterarLabelEmail, 100);
+const intervaloPlaceholder = setInterval(alterarPlaceholderEmail, 100);
+
+function adicionarLinkCriarConta() {
+    const form = document.querySelector("form");
+    
+    if (form && !document.querySelector("#link-criar-conta")) {
+        const p = document.createElement("p");
+        p.id = "link-criar-conta";
+        p.style.textAlign = "center";
+        p.style.fontSize = "14px";
+
+        p.innerHTML = `
+            Não possui conta? 
+            <a href="http://localhost:8001/registro" target="_blank" style="
+                color: #d4d803;
+                text-decoration: none;
+                font-weight: 500;
+            ">
+                Criar conta
+            </a>
+        `;
+
+        form.appendChild(p);
+    }
+}
+
+const intervaloLink = setInterval(() => {
+    if (document.querySelector("form")) {
+        adicionarLinkCriarConta();
+        clearInterval(intervaloLink);
+    }
+}, 100);
+
+
+// Fica observando o DOM até o botão aparecer
+const observer_button = new MutationObserver(() => {
+    // Tenta encontrar o link/botão de "criar conta" do Chainlit
+    const links = document.querySelectorAll('a, button');
+    
+    links.forEach(el => {
+        const texto = el.textContent.trim().toLowerCase();
+        if (
+            texto.includes('criar conta') || 
+            texto.includes('sign up') || 
+            texto.includes('register') ||
+            texto.includes('registrar')
+        ) {
+            el.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open('http://localhost:8001/registro', '_blank');
+            };
+        }
+    });
+});
+
+observer_button.observe(document.body, {
+    childList: true,
+    subtree: true
+});

@@ -6,11 +6,16 @@ import chainlit as cl
 import urllib.request
 import urllib.parse
 import json
+import uvicorn 
 from crews.travel_crew import CompleteTravelCrew
 from tools.email_tool import enviar_email
 from dotenv import load_dotenv
 import asyncio
 from datetime import datetime
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from chainlit.server import app
+from registro_app import registro
 
 load_dotenv()
 
@@ -76,21 +81,6 @@ def validar_entrada(tipo: str, valor: str) -> tuple[bool, str]:
 
     return True, ""
 
-
-conn = sqlite3.connect("usuarios.db")
-cursor = conn.cursor()
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS usuarios (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    name TEXT NOT NULL,
-    role TEXT NOT NULL
-)
-""")
-conn.commit()
-
-
 ROTEIRO_MOCK = """
   ## Guia Completo de Viagem: Rio de Janeiro
 
@@ -137,7 +127,19 @@ ROTEIRO_MOCK = """
   ## 📚 Fontes
   TripAdvisor
 """
-
+# conexão com o banco
+conn = sqlite3.connect("usuarios.db")
+cursor = conn.cursor()
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL
+)
+""")
+conn.commit()
 
 def registrar_usuario(username, password, name="Usuário", role="user"):
     password_hash = hashlib.sha256(password.encode()).hexdigest()
@@ -171,7 +173,6 @@ def auth_callback(username: str, password: str):
         identifier=username,
         metadata={"name": name, "role": role}
     )
-
 
 def formatar_roteiro(texto: str) -> str:
     linhas_brutas = texto.split("\n")
@@ -388,3 +389,10 @@ async def main(message: cl.Message):
 
         cl.user_session.set("estado", "origem")
         await cl.Message(content="🔄 Para planejar uma nova viagem, digite sua cidade de origem.").send()
+    
+async def rodar_registro():
+    config = uvicorn.Config(registro, host="0.0.0.0", port=8001, log_level="warning")
+    server = uvicorn.Server(config)
+    await server.serve()
+
+asyncio.ensure_future(rodar_registro())

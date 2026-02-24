@@ -39,6 +39,7 @@ span.rounded-full.bg-primary {
 
 
 
+
 .logo {
     width: 200px !important;
     max-width: 200px !important;
@@ -74,115 +75,158 @@ span.rounded-full.bg-primary {
         #888888 25%,
         #ffffff 50%,
         #888888 75%
-    );
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmer 1.5s linear infinite;
-    display: inline-block;
-}
-
-.spinner-viagem {
-    display: inline-block;
-    margin-left: 6px;
-    vertical-align: middle;
-    width: 14px;
-    height: 14px;
-    border: 2px solid #ffffff44;
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin-viagem 0.7s linear infinite;
-    flex-shrink: 0;
-}
-
-.loader-wrapper {
-    display: inline-flex !important;
-    align-items: center !important;
-    white-space: nowrap !important;
-}
-
-div[role="article"]:has(.loader-wrapper) {
-    display: flex !important;
-    justify-content: flex-start !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    text-indent: 0 !important;
-    line-height: normal !important;
-}
-
-.tabela-destinos {
-    position: fixed;
-    right: 20px;
-    top: 60px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    padding: 18px;
-    border-radius: 28px;
-    backdrop-filter: blur(40px);
-    color: white;
-    width: 220px;
-    transition: background 0.6s ease;
+        );
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: shimmer 1.5s linear infinite;
+        display: inline-block;
+    }
     
-}
+    .spinner-viagem {
+        display: inline-block;
+        margin-left: 6px;
+        vertical-align: middle;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #ffffff44;
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin-viagem 0.7s linear infinite;
+        flex-shrink: 0;
+    }
+    
+    .loader-wrapper {
+        display: inline-flex !important;
+        align-items: center !important;
+        white-space: nowrap !important;
+    }
+    
+    div[role="article"]:has(.loader-wrapper) {
+        display: flex !important;
+        justify-content: flex-start !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        text-indent: 0 !important;
+        line-height: normal !important;
+    }
+    
+    .tabela-destinos {
+        position: fixed;
+        right: 20px;
+        top: 60px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 18px;
+        border-radius: 28px;
+        backdrop-filter: blur(40px);
+        color: white;
+        width: 220px;
+        transition: background 0.6s ease;
+        
+    }
+    
+    .clima-header-apple {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        text-align: center;
+    }
+    
+    .clima-header-apple img {
+        width: 55px;
+    }
+    
+    .clima-calendario-coluna {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .clima-dia-coluna {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .clima-dia-coluna img {
+        width: 24px;
+    }
+    
+    
+    .clima-sol {
+        background: linear-gradient(135deg, #f6d365, #fda085);
+    }
+    
+    /* 🌧 CHUVA */
+    .clima-chuva {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+    
+    /* ☁️ NUBLADO */
+    .clima-nublado {
+        background: linear-gradient(135deg, #757f9a, #d7dde8);
+    }
+    
+    /* 🌙 NOITE */
+    .clima-noite.clima-sol {
+        background: linear-gradient(135deg, #141E30, #243B55);
+    }
+    
+    .clima-noite.clima-chuva {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    }
+    
+    .clima-noite.clima-nublado {
+        background: linear-gradient(135deg, #232526, #414345);
+    }
+    
+    
+    .span-overlay {
+        position: absolute; 
+        top: 0;             
+        left: 0;            
+        z-index: 9999;     
+    }
+    [data-radix-menu-content] {
+        z-index: 99999 !important;  
+    }
+    
+    /* Tela login  */
+    .chainlit-header img.logo {
+        display: none !important;
+    }
+    
+    /* logo da pagina de login */
+    img[src*="favicon"] {
+        filter: none !important;           
+        mix-blend-mode: normal !important; 
+        width: auto !important;
+        height: auto !important;
+        display: block !important;
+    }
 
-.clima-header-apple {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    text-align: center;
-}
+    div.relative.hidden.bg-muted.overflow-hidden {
+    background-color: #2d2d2d !important; 
+    }
 
-.clima-header-apple img {
-    width: 55px;
-}
-
-.clima-calendario-coluna {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.clima-dia-coluna {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-
-.clima-dia-coluna img {
-    width: 24px;
-}
-
-
-.clima-sol {
-    background: linear-gradient(135deg, #f6d365, #fda085);
-}
-
-/* 🌧 CHUVA */
-.clima-chuva {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
-}
-
-/* ☁️ NUBLADO */
-.clima-nublado {
-    background: linear-gradient(135deg, #757f9a, #d7dde8);
-}
-
-/* 🌙 NOITE */
-.clima-noite.clima-sol {
-    background: linear-gradient(135deg, #141E30, #243B55);
-}
-
-.clima-noite.clima-chuva {
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-}
-
-.clima-noite.clima-nublado {
-    background: linear-gradient(135deg, #232526, #414345);
-}
+    .bg-primary {
+    background-color:#d4d803 !important;
+    }
+    .hover\:bg-primary\/90:hover {
+    background-color:#e4e71c !important;
+    }
+    h1.text-2xl.font-bold {
+        max-width: 420px !important;   
+        margin: 0 auto !important;     
+        text-align: center !important; 
+        line-height: 1.3 !important;
+        font-size: 20px !important;   
+    }
