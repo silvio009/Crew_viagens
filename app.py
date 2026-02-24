@@ -16,8 +16,12 @@ from fastapi import FastAPI, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from chainlit.server import app
 from registro_app import registro
+from starlette.staticfiles import StaticFiles
 
 load_dotenv()
+
+
+app.mount("/public", StaticFiles(directory="public"), name="public")
 
 os.makedirs("public", exist_ok=True)
 with open("public/config.js", "w") as f:
