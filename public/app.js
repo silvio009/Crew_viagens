@@ -447,7 +447,7 @@ const observer_button = new MutationObserver(() => {
             el.onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.open('http://localhost:8001/registro', '_blank');
+                window.open('/registro', '_blank');
             };
         }
     });
