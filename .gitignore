@@ -4,7 +4,6 @@ env/
 __pycache__/
 *.pyc
 .env
-.chainlit/
 config.js
 *.db
 *.sqlite

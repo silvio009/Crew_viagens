@@ -20,9 +20,6 @@ from starlette.staticfiles import StaticFiles
 
 load_dotenv()
 
-
-app.mount("/public", StaticFiles(directory="public"), name="public")
-
 os.makedirs("public", exist_ok=True)
 with open("public/config.js", "w") as f:
     f.write(f"window._owKey = '{os.getenv('OPENWEATHER_API_KEY')}';")
