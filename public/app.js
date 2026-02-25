@@ -412,7 +412,7 @@ function adicionarLinkCriarConta() {
 
         p.innerHTML = `
             Não possui conta? 
-            <a href="http://localhost:8001/registro" target="_blank" style="
+            <a href="/registro" target="_blank" style="
                 color: #d4d803;
                 text-decoration: none;
                 font-weight: 500;
