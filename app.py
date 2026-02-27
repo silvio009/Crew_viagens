@@ -398,7 +398,7 @@ async def main(message: cl.Message):
 
         cl.user_session.set("estado", "email")
         await cl.Message(
-            content="Deseja receber este roteiro por e-mail? Se sim, digite seu e-mail."
+            content="✉️ Deseja receber este roteiro por e-mail? Se sim, digite seu e-mail."
         ).send()
 
     elif estado == "email":
