@@ -39,6 +39,7 @@ A aplicação foi construída para oferecer:
 
 ---
 
+
 ## Principais funcionalidades
 
 - **Autenticação com usuário e senha** (persistência em SQLite).
