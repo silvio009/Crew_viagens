@@ -15,6 +15,9 @@ from datetime import datetime
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from starlette.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import HTMLResponse as StarletteHTMLResponse
 from chainlit.server import app
 from registro_app import registro, HTML, get_db
 
@@ -22,33 +25,35 @@ load_dotenv()
 
 app.mount("/public", StaticFiles(directory="public"), name="public")
 
-@app.get("/registro", response_class=HTMLResponse)
-async def registro_get():
-    return HTML.format(msg="")
+class RegistroMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        if request.url.path == "/registro":
+            if request.method == "GET":
+                return StarletteHTMLResponse(HTML.format(msg=""))
+            elif request.method == "POST":
+                form = await request.form()
+                username = form.get("username")
+                name = form.get("name")
+                password = form.get("password")
+                password_hash = hashlib.sha256(password.encode()).hexdigest()
+                conn = get_db()
+                cursor = conn.cursor()
+                try:
+                    cursor.execute(
+                        "INSERT INTO usuarios (username, password_hash, name, role) VALUES (?, ?, ?, ?)",
+                        (username, password_hash, name, "user")
+                    )
+                    conn.commit()
+                    msg = '<div class="msg ok">✅ Conta criada! <a href="/login" style="color:#d4d803">Fazer login</a></div>'
+                    return StarletteHTMLResponse(HTML.format(msg=msg))
+                except:
+                    msg = '<div class="msg erro">❌ Usuário já existe. Tente outro nome.</div>'
+                    return StarletteHTMLResponse(HTML.format(msg=msg))
+                finally:
+                    conn.close()
+        return await call_next(request)
 
-@app.post("/registro", response_class=HTMLResponse)
-async def registro_post(request: Request):
-    form = await request.form()
-    username = form.get("username")
-    name = form.get("name")
-    password = form.get("password")
-    
-    password_hash = hashlib.sha256(password.encode()).hexdigest()
-    conn = get_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(
-            "INSERT INTO usuarios (username, password_hash, name, role) VALUES (?, ?, ?, ?)",
-            (username, password_hash, name, "user")
-        )
-        conn.commit()
-        msg = '<div class="msg ok">✅ Conta criada! <a href="/login" style="color:#d4d803">Fazer login</a></div>'
-        return HTML.format(msg=msg)
-    except:
-        msg = '<div class="msg erro">❌ Usuário já existe. Tente outro nome.</div>'
-        return HTML.format(msg=msg)
-    finally:
-        conn.close()
+app.add_middleware(RegistroMiddleware)
 
 
 os.makedirs("public", exist_ok=True)
