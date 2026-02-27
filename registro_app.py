@@ -27,9 +27,10 @@ HTML = """
     <link rel="icon" href="/public/favicon.png" type="image/png" />
     <style>
         * {{ margin:0; padding:0; box-sizing:border-box; }}
-        body {{ font-family:'Segoe UI',sans-serif; display:flex; height:100vh; overflow:hidden; }}
-        .left {{ width:50%; background:#1a1a1a; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:60px 80px; }}
-        .left h1 {{ color:#fff; font-size:1.1rem; font-weight:700; text-align:center; margin-bottom:28px; line-height:1.4; }}
+        body {{ font-family:'Segoe UI',sans-serif; display:flex; height:100vh; overflow:hidden; background:#1a1a1a; }}
+        .left {{ width:50%; background:#1a1a1a; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:60px 40px; }}
+        .left h1 {{ color:#fff; font-size:1.1rem; font-weight:700; text-align:center; margin-bottom:28px; line-height:1.4; max-width:340px; }}
+        .form-inner {{ width:100%; max-width:340px; }}
         .group {{ width:100%; margin-bottom:12px; }}
         label {{ display:block; color:#ccc; font-size:0.88rem; margin-bottom:6px; }}
         input {{ width:100%; padding:10px 15px; background:#2a2a2a; border:1px solid #3a3a3a; border-radius:8px; color:#fff; font-size:0.9rem; outline:none; }}
@@ -42,7 +43,7 @@ HTML = """
         .erro {{ background:#3a1a1a; border:1px solid #ff4444; color:#ff6b6b; }}
         .ok {{ background:#1a3a1a; border:1px solid #44ff44; color:#6bff6b; }}
         .right {{ width:50%; background:#2d2d2d; display:flex; justify-content:center; align-items:center; }}
-        .right img {{ width:320px; }}
+        .right img {{ width:700px; }}
 
         @media (max-width: 768px) {{
             body {{ flex-direction:column; height:auto; min-height:100vh; overflow:auto; }}
@@ -55,23 +56,25 @@ HTML = """
 <body>
     <div class="left">
         <h1>Crie sua conta para planejar sua próxima experiência de viagem</h1>
-        {{msg}}
-        <form method="post" style="width:100%">
-            <div class="group">
-                <label>Usuário</label>
-                <input name="username" type="text" required />
-            </div>
-            <div class="group">
-                <label>Nome completo</label>
-                <input name="name" type="text" required />
-            </div>
-            <div class="group">
-                <label>Senha</label>
-                <input name="password" type="password" required />
-            </div>
-            <button class="btn" type="submit">Criar conta</button>
-        </form>
-        <p class="link">Já possui conta? <a href="/login">Fazer login</a></p>
+        <div class="form-inner">
+            {msg}
+            <form method="post">
+                <div class="group">
+                    <label>Usuário</label>
+                    <input name="username" type="text" required />
+                </div>
+                <div class="group">
+                    <label>Nome completo</label>
+                    <input name="name" type="text" required />
+                </div>
+                <div class="group">
+                    <label>Senha</label>
+                    <input name="password" type="password" required />
+                </div>
+                <button class="btn" type="submit">Criar conta</button>
+            </form>
+            <p class="link">Já possui conta? <a href="/login">Fazer login</a></p>
+        </div>
     </div>
     <div class="right">
         <img src="/public/logo_name.png" alt="TravelCrew" onerror="this.style.display='none'" />
@@ -95,7 +98,7 @@ async def submit(username: str = Form(...), name: str = Form(...), password: str
             (username, password_hash, name, "user")
         )
         conn.commit()
-        msg = '<div class="msg ok">✅ Conta criada! <a href="http://localhost:8000/login" style="color:#d4d803">Fazer login</a></div>'
+        msg = '<div class="msg ok">✅ Conta criada! <a href="/login" style="color:#d4d803">Fazer login</a></div>'
         return HTML.format(msg=msg)
     except sqlite3.IntegrityError:
         msg = '<div class="msg erro">❌ Usuário já existe. Tente outro nome.</div>'
