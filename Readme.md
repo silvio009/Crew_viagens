@@ -314,25 +314,3 @@ Use a URL exibida no terminal (normalmente `http://localhost:8000`).
 
 ---
 
-## Roadmap sugerido
-
-- [ ] Testes unitários e de integração para pipeline e autenticação.
-- [ ] Controle de acesso por perfis (admin/user) com permissões reais.
-- [ ] Persistência de histórico de conversas e roteiros por usuário.
-- [ ] Painel administrativo para métricas de uso e qualidade de resposta.
-- [ ] Exportação de roteiro em PDF.
-- [ ] Internacionalização (PT/EN/ES).
-
----
-
-## Licença
-
-Defina aqui a licença oficial do projeto (ex.: MIT, Apache-2.0, proprietária).
-
----
-
-## Contato
-
-**TravelCrew Agency**  
-📧 contato@travelcrew.com.br  
-🌐 www.travelcrew.com.br
