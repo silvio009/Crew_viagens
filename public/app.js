@@ -254,7 +254,7 @@ function injetarTabelaClima() {
 
     const div = document.createElement('div');
     div.className = 'tabela-destinos';
-    div.innerHTML = `<div style="color:#444; font-size:0.75rem; text-align:center;">🌤 Clima aparecerá após informar o destino e as datas.</div>`;
+    div.innerHTML = `<div style="color:#444; font-size:0.75rem; text-align:center;"> Clima aparecerá após informar o destino e as datas.</div>`;
     document.body.appendChild(div);
 }
 
