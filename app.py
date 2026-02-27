@@ -304,7 +304,7 @@ async def main(message: cl.Message):
             return
         cl.user_session.set("origem", user_msg)
         cl.user_session.set("estado", "destino")
-        await cl.Message(content="Qual é o destino que você deseja planejar?").send()
+        await cl.Message(content="🏔️ Qual é o destino da sua viagem?").send()
 
     elif estado == "destino":
         loop = asyncio.get_event_loop()
@@ -314,7 +314,7 @@ async def main(message: cl.Message):
             return
         cl.user_session.set("destino", user_msg)
         cl.user_session.set("estado", "dias")
-        await cl.Message(content="Quantos dias você pretende ficar?").send()
+        await cl.Message(content="⏳ Quantos dias você pretende ficar?").send()
 
     elif estado == "dias":
         loop = asyncio.get_event_loop()
@@ -326,7 +326,7 @@ async def main(message: cl.Message):
             dias = int(user_msg)
             cl.user_session.set("dias", dias)
             cl.user_session.set("estado", "data_ida")
-            await cl.Message(content="Qual será a data de ida da viagem? (DD/MM/AAAA)").send()
+            await cl.Message(content="📅 Qual é a data de partida? (DD/MM/AAAA)").send()
 
         except ValueError:
             await cl.Message(content="⚠️ Por favor, digite um número válido de dias.").send()
@@ -338,7 +338,7 @@ async def main(message: cl.Message):
             return
         cl.user_session.set("data_ida", user_msg.strip())
         cl.user_session.set("estado", "data_volta")
-        await cl.Message(content="Qual será a data de volta da sua viagem? (DD/MM/AAAA)").send()
+        await cl.Message(content="📅 Qual é a data de volta? (DD/MM/AAAA)").send()
 
     elif estado == "data_volta":
         valida, motivo = validar_data(user_msg)
