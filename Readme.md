@@ -26,6 +26,7 @@ Plataforma de planejamento de viagens com **agentes de IA colaborativos**, inter
 
 ## Visão geral
 
+
 O **TravelCrew Agency** é um sistema orientado a agentes que transforma uma conversa com o usuário em um **roteiro completo de viagem**. O fluxo combina pesquisa de dados, geração editorial do guia e composição de e-mail corporativo.
 
 A aplicação foi construída para oferecer:
