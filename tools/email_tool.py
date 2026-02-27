@@ -218,7 +218,7 @@ def enviar_email(destinatario: str, assunto: str, corpo: str):
         msg.attach(parte_texto)
         msg.attach(parte_html)
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as servidor:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 587) as servidor:
             servidor.login(remetente, senha)
             servidor.sendmail(remetente, destinatario, msg.as_string())
         return True
