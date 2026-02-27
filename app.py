@@ -19,6 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request as StarletteRequest
 from starlette.responses import HTMLResponse as StarletteHTMLResponse
 from chainlit.server import app
+from datetime import timedelta
 from registro_app import registro, HTML, get_db
 
 load_dotenv()
@@ -54,6 +55,23 @@ class RegistroMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 app.add_middleware(RegistroMiddleware)
+
+
+class ClimaMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        if request.url.path == "/api/clima-data":
+            from starlette.responses import JSONResponse
+            return JSONResponse(_clima_data)
+        return await call_next(request)
+
+app.add_middleware(ClimaMiddleware)
+
+_clima_data = {"destino": "", "dataIda": "", "dataVolta": ""}
+
+@app.get("/api/clima-data")
+async def clima_data_endpoint():
+    from starlette.responses import JSONResponse
+    return JSONResponse(_clima_data)
 
 
 os.makedirs("public", exist_ok=True)
@@ -333,32 +351,25 @@ async def main(message: cl.Message):
 
     elif estado == "data_ida":
         valida, motivo = validar_data(user_msg)
+        
         if not valida:
             await cl.Message(content=f"⚠️ {motivo}").send()
             return
-        cl.user_session.set("data_ida", user_msg.strip())
-        cl.user_session.set("estado", "data_volta")
-        await cl.Message(content="📅 Qual é a data de volta? (DD/MM/AAAA)").send()
-
-    elif estado == "data_volta":
-        valida, motivo = validar_data(user_msg)
-        if not valida:
-            await cl.Message(content=f"⚠️ {motivo}").send()
-            return
-        cl.user_session.set("data_volta", user_msg.strip())
-
-        origem = cl.user_session.get("origem")
-        destino = cl.user_session.get("destino")
+        
+        data_ida = user_msg.strip()
+        cl.user_session.set("data_ida", data_ida)
         dias = cl.user_session.get("dias")
-        data_ida = cl.user_session.get("data_ida")
-        data_volta = user_msg.strip()
+        destino = cl.user_session.get("destino")
+        origem = cl.user_session.get("origem")
+        
+        ida = datetime.strptime(data_ida, "%d/%m/%Y")
+        volta = ida + timedelta(days=dias)
+        data_volta = volta.strftime("%d/%m/%Y")
+        cl.user_session.set("data_volta", data_volta)
 
-        # Publica as datas no config.js para o JS ler
-        with open("public/config.js", "w") as f:
-            f.write(f"window._owKey = '{os.getenv('OPENWEATHER_API_KEY')}';\n")
-            f.write(f"window._dataIda = '{data_ida}';\n")
-            f.write(f"window._dataVolta = '{data_volta}';\n")
-            f.write(f"window._destino = '{destino}';\n")
+        _clima_data["destino"] = destino
+        _clima_data["dataIda"] = data_ida
+        _clima_data["dataVolta"] = data_volta
 
         loader = cl.Message(content="Pesquisando e gerando seu roteiro")
         await loader.send()

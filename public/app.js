@@ -261,9 +261,7 @@ function injetarTabelaClima() {
 /**OBSERVAR CHAT — destino e datas*/
 let aguardandoDestino = false;
 let aguardandoDataIda = false;
-let aguardandoDataVolta = false;
 let destinoAtual = '';
-let dataIdaAtual = '';
 let observerIniciado = false;
 
 function observarDestino() {
@@ -292,10 +290,7 @@ function observarDestino() {
                         aguardandoDataIda = true;
                         return;
                     }
-                    if (texto.includes('data de volta')) {
-                        aguardandoDataVolta = true;
-                        return;
-                    }
+
                     if (texto.includes('LLMs podem cometer erros')) return;
 
                     if (aguardandoDestino && texto.length <= 40) {
@@ -305,20 +300,19 @@ function observarDestino() {
                     }
 
                     if (aguardandoDataIda && /\d{2}\/\d{2}\/\d{4}/.test(texto)) {
-                        dataIdaAtual = texto;
                         aguardandoDataIda = false;
-                        return;
-                    }
-                    if (aguardandoDataVolta && /\d{2}\/\d{2}\/\d{4}/.test(texto)) {
-                        const dataVoltaAtual = texto;
-                        aguardandoDataVolta = false;
 
-                        const ida = parseDateBR(dataIdaAtual);
-                        const volta = parseDateBR(dataVoltaAtual);
-
-                        if (ida && volta && destinoAtual) {
-                            atualizarClimaTabela(destinoAtual, ida, volta);
-                        }
+                        setTimeout(() => {
+                            fetch('/api/clima-data?t=' + Date.now())
+                                .then(r => r.json())
+                                .then(data => {
+                                    const ida = parseDateBR(data.dataIda);
+                                    const volta = parseDateBR(data.dataVolta);
+                                    if (ida && volta && destinoAtual) {
+                                        atualizarClimaTabela(destinoAtual, ida, volta);
+                                    }
+                                });
+                        }, 1000);
                         return;
                     }
                 });
